@@ -79,22 +79,36 @@ public class HomeController : Controller
         {
             await conn.OpenAsync();
             var cmd = conn.CreateCommand();
+            //     cmd.CommandText = @"
+            //     SELECT TOP 100 *
+            //     FROM Case
+            //     WHERE (@reportDate IS NULL OR ReportDate = @reportDate)
+            //       AND (@finishDate IS NULL OR FinishDate = @finishDate)
+            //       AND (@department IS NULL OR Department LIKE '%' + @department + '%')
+            //       AND (@issueType IS NULL OR IssueType LIKE '%' + @issueType + '%')
+            //       AND (@handler IS NULL OR Handler LIKE '%' + @handler + '%')
+            //       AND (@handleType IS NULL OR HandleType LIKE '%' + @handleType + '%')
+            // ";
+
             cmd.CommandText = @"
-            SELECT TOP 100 *
-            FROM Case
-            WHERE (@reportDate IS NULL OR ReportDate = @reportDate)
-              AND (@finishDate IS NULL OR FinishDate = @finishDate)
-              AND (@department IS NULL OR Department LIKE '%' + @department + '%')
-              AND (@issueType IS NULL OR IssueType LIKE '%' + @issueType + '%')
-              AND (@handler IS NULL OR Handler LIKE '%' + @handler + '%')
-              AND (@handleType IS NULL OR HandleType LIKE '%' + @handleType + '%')
-        ";
-            cmd.Parameters.AddWithValue("@reportDate", (object?)model.ReportDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@finishDate", (object?)model.FinishDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@department", (object?)model.Department ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@issueType", (object?)model.IssueType ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@handler", (object?)model.Handler ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@handleType", (object?)model.HandleType ?? DBNull.Value);
+                SELECT TOP (10) A.[record_id]
+                    ,A.[apply_date]
+                    ,B.depart_name
+                    ,C.staff_name
+                    ,A.[problem_type]
+                    ,A.[processing_type]
+                    ,A.[processing_staff_id]
+                    ,A.[completion_date]
+                FROM [ISM].[dbo].[ism_maintain_record] A 
+                LEFT JOIN [ISM].[dbo].ism_department B ON A.depart_code = B.depart_code
+                LEFT JOIN [ISM].[dbo].ism_staff C ON A.staff_id = C.staff_id";
+
+            // cmd.Parameters.AddWithValue("@reportDate", (object?)model.ReportDate ?? DBNull.Value);
+            // cmd.Parameters.AddWithValue("@finishDate", (object?)model.FinishDate ?? DBNull.Value);
+            // cmd.Parameters.AddWithValue("@department", (object?)model.Department ?? DBNull.Value);
+            // cmd.Parameters.AddWithValue("@issueType", (object?)model.IssueType ?? DBNull.Value);
+            // cmd.Parameters.AddWithValue("@handler", (object?)model.Handler ?? DBNull.Value);
+            // cmd.Parameters.AddWithValue("@handleType", (object?)model.HandleType ?? DBNull.Value);
 
             using (var reader = await cmd.ExecuteReaderAsync())
             {
@@ -103,13 +117,23 @@ public class HomeController : Controller
                     results.Add(new
                     {
                         // 根據你的資料表欄位調整
-                        Id = reader["Id"],
-                        ReportDate = reader["ReportDate"],
-                        FinishDate = reader["FinishDate"],
-                        Department = reader["Department"],
-                        IssueType = reader["IssueType"],
-                        Handler = reader["Handler"],
-                        HandleType = reader["HandleType"]
+                        record_id = reader["record_id"],
+                        apply_date = reader["apply_date"],
+                        depart_name = reader["depart_name"],
+                        staff_name = reader["staff_name"],
+                        problem_type = reader["problem_type"],
+                        processing_type = reader["processing_type"],
+                        processing_staff_id = reader["processing_staff_id"],
+                        completion_date = reader["completion_date"]
+
+                        //序號 record_id
+                        //申報日期 apply_date
+                        //使用單位 depart_code
+                        //使用者 staff_id
+                        //問題類別 problem_type
+                        //處理類別 processing_type
+                        //處理人員 processing_staff_id
+                        //完成日期 completion_date
                     });
                 }
             }
