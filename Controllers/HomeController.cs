@@ -207,7 +207,7 @@ public class HomeController : Controller
                     }
                 }
             }
-            // ...原本邏輯...
+
             return Json(results);
         }
         catch (Exception ex)
@@ -215,4 +215,66 @@ public class HomeController : Controller
             return Content("連線失敗：" + ex.Message);
         }
     }
+
+[HttpGet]
+public async Task<IActionResult> Edit(int id)
+{
+    try
+    {
+        var connStr = GetConnectionString();
+        using (var conn = new SqlConnection(connStr))
+        {
+            await conn.OpenAsync();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT 
+                    *
+                FROM 
+                    ism_maintain_record
+                WHERE 
+                    record_id = @id";
+            cmd.Parameters.AddWithValue("@id", id);
+
+            using (var reader = await cmd.ExecuteReaderAsync())
+            {
+                if (await reader.ReadAsync())
+                {
+                    var model = new MaintainRecordViewModel
+                    {
+                        record_id = reader["record_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["record_id"]),
+                        apply_date = reader["apply_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["apply_date"]),
+                        serial_no = reader["serial_no"] == DBNull.Value ? null : reader["serial_no"].ToString(),
+                        depart_code = reader["depart_code"] == DBNull.Value ? null : reader["depart_code"].ToString(),
+                        staff_id = reader["staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["staff_id"]),
+                        tel = reader["tel"] == DBNull.Value ? null : reader["tel"].ToString(),
+                        problem_type = reader["problem_type"] == DBNull.Value ? null : reader["problem_type"].ToString(),
+                        record_staff_id = reader["record_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["record_staff_id"]),
+                        processing_staff_id = reader["processing_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["processing_staff_id"]),
+                        processing_type = reader["processing_type"] == DBNull.Value ? null : reader["processing_type"].ToString(),
+                        description = reader["description"] == DBNull.Value ? null : reader["description"].ToString(),
+                        solution = reader["solution"] == DBNull.Value ? null : reader["solution"].ToString(),
+                        called_firm = reader["called_firm"] == DBNull.Value ? null : reader["called_firm"].ToString(),
+                        completion_date = reader["completion_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["completion_date"]),
+                        processing_minutes = reader["processing_minutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["processing_minutes"]),
+                        update_user_id = reader["update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["update_user_id"]),
+                        update_date = reader["update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["update_date"]),
+                        satisfaction = reader["satisfaction"] == DBNull.Value ? null : reader["satisfaction"].ToString(),
+                        recommendation = reader["recommendation"] == DBNull.Value ? null : reader["recommendation"].ToString(),
+                        satisfaction_update_user_id = reader["satisfaction_update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["satisfaction_update_user_id"]),
+                        satisfaction_update_date = reader["satisfaction_update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["satisfaction_update_date"])
+                    };
+                    return View(model);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        return Content("查詢失敗：" + ex.Message);
+    }
+}
 }

@@ -115,7 +115,7 @@ async function searchAndRender(formData) {
                     <td>${row.ProcessingType || ''}</td>
                     <td>${row.ProcessingStaff || ''}</td>
                     <td>${toTaiwanDate(row.CompletionDate, "R/MM/dd HH:mm") || ''}</td>
-                    <td><button>編輯</button></td>
+                    <td><button class="btn btn-secondary edit_btn" data-id="${row.RecordId}">編輯</button></td>
                 </tr>
             `).join('');
             html = '<table class="table table-bordered"><thead><tr>' +
@@ -130,12 +130,12 @@ async function searchAndRender(formData) {
 
 document.addEventListener('DOMContentLoaded', async function () {
 
-    // 下拉選單初始化
-    await initDropdowns();
-
-    //搜尋
     var searchForm = document.getElementById('searchForm');
     if (searchForm) {
+
+        // 下拉選單初始化
+        await initDropdowns();
+
         searchForm.addEventListener('submit',async function (e) {
             e.preventDefault();
 
@@ -144,6 +144,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             //搜尋並渲染
             await searchAndRender(formData);
+
+            // 渲染表格後，監聽所有編輯按鈕
+            document.getElementById('searchResults').addEventListener('click', function (e) {
+                if (e.target && e.target.classList.contains('edit_btn')) {
+                    const recordId = e.target.getAttribute('data-id');
+                    if (recordId) {
+                        window.location.href = `/Home/Edit/${recordId}`;
+                    }
+                }
+            });
         });
     }
 });

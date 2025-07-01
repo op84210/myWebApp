@@ -1,0 +1,21 @@
+﻿@model myWebApp.Models.MaintainRecordViewModel
+
+
+<div style="margin-bottom:20px;">
+    <button type="button" class="btn btn-secondary" onclick="window.history.back();" style="float:left;">← 回上一頁</button>
+</div>
+
+<div>
+    <strong>序號：</strong> @Model.record_id <br />
+    <strong>申報日期：</strong> @Model.apply_date <br />
+    <strong>單位代碼：</strong> @Model.depart_code <br />
+    <strong>使用者：</strong> @Model.staff_id <br />
+    <strong>電話：</strong> @Model.tel <br />
+    <strong>問題類別：</strong> @Model.problem_type <br />
+    <strong>處理人員：</strong> @Model.processing_staff_id <br />
+    <strong>處理類別：</strong> @Model.processing_type <br />
+    <strong>描述：</strong> @Model.description <br />
+    <strong>解決方式：</strong> @Model.solution <br />
+    <strong>完成日期：</strong> @Model.completion_date <br />
+    <!-- 依需求繼續加 -->
+</div>
