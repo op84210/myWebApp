@@ -1,34 +1,4 @@
-﻿//西元年轉換民國年
-function toTaiwanDate(isoDateStr, format = "R/MM/dd HH:mm") {
-    if (!isoDateStr) return "";
-    const date = new Date(isoDateStr);
-    if (isNaN(date)) return isoDateStr;
-    const year = date.getFullYear() - 1911;
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const day = date.getDate().toString().padStart(2, "0");
-    const hour = date.getHours().toString().padStart(2, "0");
-    const min = date.getMinutes().toString().padStart(2, "0");
-    return format
-        .replace("R", year)
-        .replace("MM", month)
-        .replace("dd", day)
-        .replace("HH", hour)
-        .replace("mm", min);
-}
-
-//民國年轉換西元年
-function rocToAD(rocStr) {
-    // 1130701 → 2024-07-01
-    if (!rocStr) return "";
-    const m = rocStr.match(/^(\d{3})(\d{2})(\d{2})$/);
-    if (!m) return "";
-    const year = parseInt(m[1], 10) + 1911;
-    const month = m[2];
-    const day = m[3];
-    return `${year}-${month}-${day}`;
-}
-
-function validateForm(formData) {
+﻿function validateForm(formData) {
 
     // 取得民國年欄位
     const applyStart = document.getElementById('applyStartDate').value.trim();
@@ -59,36 +29,6 @@ function validateForm(formData) {
     if (completionEnd) formData.set('completionEndDate', rocToAD(completionEnd));
 
     return true;
-}
-
-// 下拉選單初始化
-async function initDropdowns() {
-
-    try {
-        const res = await fetch('/Home/GetDropdownOptions');
-        if (!res.ok) throw new Error('伺服器錯誤');
-        const data = await res.json();
-
-        const dropdownMap = [
-            { id: 'departCode', dataKey: 'departments' }, 
-            { id: 'problemType', dataKey: 'problemTypes' },
-            { id: 'processingStaffId', dataKey: 'processingStaffIds' },
-            { id: 'processingType', dataKey: 'processingTypes' }
-        ];
-
-        dropdownMap.forEach(item => {
-            const select = document.getElementById(item.id);
-            data[item.dataKey].forEach(opt => {
-                const newOpt = document.createElement('option');
-                newOpt.value = opt.code;
-                newOpt.textContent = opt.name;
-                select.appendChild(newOpt);            
-            });
-        });
-
-    } catch (err) {
-        alert('下拉選單載入失敗：' + err);
-    }
 }
 
 //搜尋並渲染
