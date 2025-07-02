@@ -1,0 +1,13 @@
+# 忽略 bin/ 和 obj/ 編譯資料夾
+bin/
+obj/
+
+# 忽略 user 設定檔
+*.user
+*.suo
+
+# 忽略 VSCode 設定
+.vscode/
+
+# 忽略 log 檔
+*.log
