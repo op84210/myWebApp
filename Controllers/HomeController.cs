@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using myWebApp.Models;
 using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace myWebApp.Controllers;
 
@@ -14,9 +15,28 @@ public class HomeController : Controller
         _logger = logger;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View();
+        try
+        {
+            var connStr = GetConnectionString();
+
+            using (var conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                ViewBag.Departments = await GetDepartments(conn);
+                ViewBag.problemTypes = await GetProblemTypes(conn);
+                ViewBag.processingStaffIds = await GetProcessingStaffIds(conn);
+                ViewBag.processingTypes = await GetProcessingTypes(conn);
+
+                return View();
+            }
+        }
+        catch (Exception ex)
+        {
+            return Content("連線失敗：" + ex.Message);
+        }
     }
 
     public IActionResult Privacy()
@@ -41,103 +61,38 @@ public class HomeController : Controller
         return connStr;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetDropdownOptions()
-    {
-        try
-        {
-            var connStr = GetConnectionString();
+    // [HttpGet]
+    // public async Task<IActionResult> GetDropdownOptions()
+    // {
+    //     try
+    //     {
+    //         var connStr = GetConnectionString();
 
-            var result = new
-            {
-                departments = new List<object>(),
-                problemTypes = new List<object>(),
-                processingStaffIds = new List<object>(),
-                processingTypes = new List<object>()
-            };
+    //         using (var conn = new SqlConnection(connStr))
+    //         {
+    //             await conn.OpenAsync();
 
-            using (var conn = new SqlConnection(connStr))
-            {
-                await conn.OpenAsync();
+    //             var departments = await GetDepartments(conn);
+    //             var problemTypes = await GetProblemTypes(conn);
+    //             var processingStaffIds = await GetProcessingStaffIds(conn);
+    //             var processingTypes = await GetProcessingTypes(conn);
 
-                // 取得部門
-                var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT depart_code, depart_name FROM ism_department ORDER BY depart_name";
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        result.departments.Add(new
-                        {
-                            code = reader["depart_code"].ToString(),
-                            name = reader["depart_name"].ToString()
-                        });
-                    }
-                }
+    //             var result = new
+    //             {
+    //                 departments,
+    //                 problemTypes,
+    //                 processingStaffIds,
+    //                 processingTypes
+    //             };
 
-                // 取得問題類別
-                cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'QUESTION' ORDER BY description";
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        result.problemTypes.Add(new
-                        {
-                            code = reader["code"].ToString(),
-                            name = reader["description"].ToString()
-                        });
-                    }
-                }
-
-                // 取得處理人員
-                cmd = conn.CreateCommand();
-                cmd.CommandText = @"SELECT 
-                                    staff_id, staff_name 
-                                FROM 
-                                    ism_staff
-                                WHERE EXISTS (
-                                    SELECT 1 FROM ism_maintain_record
-                                    WHERE processing_staff_id = ism_staff.staff_id
-                                )
-                                ORDER BY 
-                                    staff_name";
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        result.processingStaffIds.Add(new
-                        {
-                            code = reader["staff_id"].ToString(),
-                            name = reader["staff_name"].ToString()
-                        });
-                    }
-                }
-
-                // 取得處理類別
-                cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'PROCESSING' ORDER BY description";
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        result.processingTypes.Add(new
-                        {
-                            code = reader["code"].ToString(),
-                            name = reader["description"].ToString()
-                        });
-                    }
-                }
-            }
-
-            return Json(result);
-
-        }
-        catch (Exception ex)
-        {
-            return Content("連線失敗：" + ex.Message);
-        }
-    }
+    //             return Json(result);
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         return Content("連線失敗：" + ex.Message);
+    //     }
+    // }
 
     [HttpPost]
     public async Task<IActionResult> Search([FromForm] SearchConditionViewModel model)
@@ -216,65 +171,157 @@ public class HomeController : Controller
         }
     }
 
-[HttpGet]
-public async Task<IActionResult> Edit(int id)
-{
-    try
+    [HttpGet]
+    public async Task<IActionResult> Edit(int id)
     {
-        var connStr = GetConnectionString();
-        using (var conn = new SqlConnection(connStr))
+        try
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT 
-                    *
-                FROM 
-                    ism_maintain_record
-                WHERE 
-                    record_id = @id";
-            cmd.Parameters.AddWithValue("@id", id);
-
-            using (var reader = await cmd.ExecuteReaderAsync())
+            var connStr = GetConnectionString();
+            using (var conn = new SqlConnection(connStr))
             {
-                if (await reader.ReadAsync())
+                await conn.OpenAsync();
+
+                ViewBag.Departments = await GetDepartments(conn);
+                ViewBag.problemTypes = await GetProblemTypes(conn);
+                ViewBag.processingStaffIds = await GetProcessingStaffIds(conn);
+                ViewBag.processingTypes = await GetProcessingTypes(conn);
+
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = @"SELECT 
+                                        *
+                                    FROM 
+                                        ism_maintain_record
+                                    WHERE 
+                                        record_id = @id";
+                cmd.Parameters.AddWithValue("@id", id);
+
+                using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    var model = new MaintainRecordViewModel
+                    if (await reader.ReadAsync())
                     {
-                        record_id = reader["record_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["record_id"]),
-                        apply_date = reader["apply_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["apply_date"]),
-                        serial_no = reader["serial_no"] == DBNull.Value ? null : reader["serial_no"].ToString(),
-                        depart_code = reader["depart_code"] == DBNull.Value ? null : reader["depart_code"].ToString(),
-                        staff_id = reader["staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["staff_id"]),
-                        tel = reader["tel"] == DBNull.Value ? null : reader["tel"].ToString(),
-                        problem_type = reader["problem_type"] == DBNull.Value ? null : reader["problem_type"].ToString(),
-                        record_staff_id = reader["record_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["record_staff_id"]),
-                        processing_staff_id = reader["processing_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["processing_staff_id"]),
-                        processing_type = reader["processing_type"] == DBNull.Value ? null : reader["processing_type"].ToString(),
-                        description = reader["description"] == DBNull.Value ? null : reader["description"].ToString(),
-                        solution = reader["solution"] == DBNull.Value ? null : reader["solution"].ToString(),
-                        called_firm = reader["called_firm"] == DBNull.Value ? null : reader["called_firm"].ToString(),
-                        completion_date = reader["completion_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["completion_date"]),
-                        processing_minutes = reader["processing_minutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["processing_minutes"]),
-                        update_user_id = reader["update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["update_user_id"]),
-                        update_date = reader["update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["update_date"]),
-                        satisfaction = reader["satisfaction"] == DBNull.Value ? null : reader["satisfaction"].ToString(),
-                        recommendation = reader["recommendation"] == DBNull.Value ? null : reader["recommendation"].ToString(),
-                        satisfaction_update_user_id = reader["satisfaction_update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["satisfaction_update_user_id"]),
-                        satisfaction_update_date = reader["satisfaction_update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["satisfaction_update_date"])
-                    };
-                    return View(model);
-                }
-                else
-                {
-                    return NotFound();
+                        var model = new MaintainRecordViewModel
+                        {
+                            record_id = reader["record_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["record_id"]),
+                            apply_date = reader["apply_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["apply_date"]),
+                            serial_no = reader["serial_no"] == DBNull.Value ? null : reader["serial_no"].ToString(),
+                            depart_code = reader["depart_code"] == DBNull.Value ? null : reader["depart_code"].ToString(),
+                            staff_id = reader["staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["staff_id"]),
+                            tel = reader["tel"] == DBNull.Value ? null : reader["tel"].ToString(),
+                            problem_type = reader["problem_type"] == DBNull.Value ? null : reader["problem_type"].ToString(),
+                            record_staff_id = reader["record_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["record_staff_id"]),
+                            processing_staff_id = reader["processing_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["processing_staff_id"]),
+                            processing_type = reader["processing_type"] == DBNull.Value ? null : reader["processing_type"].ToString(),
+                            description = reader["description"] == DBNull.Value ? null : reader["description"].ToString(),
+                            solution = reader["solution"] == DBNull.Value ? null : reader["solution"].ToString(),
+                            called_firm = reader["called_firm"] == DBNull.Value ? null : reader["called_firm"].ToString(),
+                            completion_date = reader["completion_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["completion_date"]),
+                            processing_minutes = reader["processing_minutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["processing_minutes"]),
+                            update_user_id = reader["update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["update_user_id"]),
+                            update_date = reader["update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["update_date"]),
+                            satisfaction = reader["satisfaction"] == DBNull.Value ? null : reader["satisfaction"].ToString(),
+                            recommendation = reader["recommendation"] == DBNull.Value ? null : reader["recommendation"].ToString(),
+                            satisfaction_update_user_id = reader["satisfaction_update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["satisfaction_update_user_id"]),
+                            satisfaction_update_date = reader["satisfaction_update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["satisfaction_update_date"])
+                        };
+                        return View(model);
+                    }
+                    else
+                    {
+                        return NotFound();
+                    }
                 }
             }
         }
+        catch (Exception ex)
+        {
+            return Content("查詢失敗：" + ex.Message);
+        }
     }
-    catch (Exception ex)
+
+    /// <summary>
+    /// 取得部門下拉選單資料（depart_code, depart_name）
+    /// </summary>
+    /// <param name="conn">已開啟的 SQL 連線</param>
+    /// <returns>部門 SelectListItem 清單</returns>
+    private async Task<List<SelectListItem>> GetDepartments(SqlConnection conn)
     {
-        return Content("查詢失敗：" + ex.Message);
+        var list = new List<SelectListItem>();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT depart_code, depart_name FROM ism_department ORDER BY depart_name";
+        using (var reader = await cmd.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                list.Add(new SelectListItem
+                {
+                    Value = reader["depart_code"].ToString(),
+                    Text = reader["depart_name"].ToString()
+                });
+            }
+        }
+        return list;
     }
-}
+    private async Task<List<SelectListItem>> GetProblemTypes(SqlConnection conn)
+    {
+        var list = new List<SelectListItem>();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'QUESTION' ORDER BY description";
+        using (var reader = await cmd.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                list.Add(new SelectListItem
+                {
+                    Value = reader["code"].ToString(),
+                    Text = reader["description"].ToString()
+                });
+            }
+        }
+        return list;
+    }
+    private async Task<List<SelectListItem>> GetProcessingStaffIds(SqlConnection conn)
+    {
+        var list = new List<SelectListItem>();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"SELECT 
+                                staff_id, staff_name 
+                            FROM 
+                                ism_staff
+                            WHERE EXISTS (
+                                SELECT 1 FROM ism_maintain_record
+                                WHERE processing_staff_id = ism_staff.staff_id
+                            )
+                            ORDER BY 
+                                staff_name";
+        using (var reader = await cmd.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                list.Add(new SelectListItem
+                {
+                    Value = reader["staff_id"].ToString(),
+                    Text = reader["staff_name"].ToString()
+                });
+            }
+        }
+        return list;
+    }
+    private async Task<List<SelectListItem>> GetProcessingTypes(SqlConnection conn)
+    {
+        var list = new List<SelectListItem>();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'PROCESSING' ORDER BY description";
+        using (var reader = await cmd.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                list.Add(new SelectListItem
+                {
+                    Value = reader["code"].ToString(),
+                    Text = reader["description"].ToString()
+                });
+            }
+        }
+        return list;
+    }
 }

@@ -28,34 +28,3 @@ function rocToAD(rocStr) {
     return `${year}-${month}-${day}`;
 }
 
-// 下拉選單初始化
-async function initDropdowns() {
-
-    try {
-        const res = await fetch('/Home/GetDropdownOptions');
-        if (!res.ok) throw new Error('伺服器錯誤');
-        const data = await res.json();
-
-        const dropdownMap = [
-            { id: 'departCode', dataKey: 'departments' },
-            { id: 'problemType', dataKey: 'problemTypes' },
-            { id: 'processingStaffId', dataKey: 'processingStaffIds' },
-            { id: 'processingType', dataKey: 'processingTypes' }
-        ];
-
-        dropdownMap.forEach(item => {
-            const select = document.getElementById(item.id);
-            if (select) {
-                data[item.dataKey].forEach(opt => {
-                    const newOpt = document.createElement('option');
-                    newOpt.value = opt.code;
-                    newOpt.textContent = opt.name;
-                    select.appendChild(newOpt);
-                });
-            }
-        });
-
-    } catch (err) {
-        alert('下拉選單載入失敗：' + err);
-    }
-}

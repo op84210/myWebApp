@@ -40,24 +40,40 @@
                 <label for="departCode" class="form-label">使用單位</label>
                 <select class="form-control" id="departCode" name="departCode">
                     <option value="">請選擇</option>
+                    @foreach (var item in ViewBag.Departments as List<SelectListItem>)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
                 </select>
             </div>
             <div class="form-group col-md-6">
                 <label for="problemType" class="form-label">問題類別</label>
                 <select class="form-control" id="problemType" name="problemType">
                     <option value="">請選擇</option>
+                    @foreach (var item in ViewBag.problemTypes as List<SelectListItem>)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
                 </select>
             </div>
             <div class="form-group col-md-6">
                 <label for="processingStaffId" class="form-label">處理人員</label>
                 <select class="form-control" id="processingStaffId" name="processingStaffId">
                     <option value="">請選擇</option>
+                    @foreach (var item in ViewBag.processingStaffIds as List<SelectListItem>)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
                 </select>
             </div>
             <div class="form-group col-md-6">
                 <label for="processingType" class="form-label">處理類別</label>
                 <select class="form-control" id="processingType" name="processingType">
                     <option value="">請選擇</option>
+                    @foreach (var item in ViewBag.processingTypes as List<SelectListItem>)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
                 </select>
             </div>
             <div class="form-group col-md-12 mt-2">

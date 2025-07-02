@@ -1,4 +1,31 @@
-﻿function validateForm(formData) {
+﻿document.addEventListener('DOMContentLoaded', async function () {
+
+    var searchForm = document.getElementById('searchForm');
+    if (searchForm) {
+
+        searchForm.addEventListener('submit',async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(searchForm);
+            if(!validateForm(formData)) return;
+
+            //搜尋並渲染
+            await searchAndRender(formData);
+
+            // 渲染表格後，監聽所有編輯按鈕
+            document.getElementById('searchResults').addEventListener('click', function (e) {
+                if (e.target && e.target.classList.contains('edit_btn')) {
+                    const recordId = e.target.getAttribute('data-id');
+                    if (recordId) {
+                        window.location.href = `/Home/Edit/${recordId}`;
+                    }
+                }
+            });
+        });
+    }
+});
+
+function validateForm(formData) {
 
     // 取得民國年欄位
     const applyStart = document.getElementById('applyStartDate').value.trim();
@@ -67,33 +94,3 @@ async function searchAndRender(formData) {
         document.getElementById('searchResults').innerHTML = '<div class="text-danger">查詢失敗：' + err + '</div>';
     }
 }
-
-document.addEventListener('DOMContentLoaded', async function () {
-
-    var searchForm = document.getElementById('searchForm');
-    if (searchForm) {
-
-        // 下拉選單初始化
-        await initDropdowns();
-
-        searchForm.addEventListener('submit',async function (e) {
-            e.preventDefault();
-
-            const formData = new FormData(searchForm);
-            if(!validateForm(formData)) return;
-
-            //搜尋並渲染
-            await searchAndRender(formData);
-
-            // 渲染表格後，監聽所有編輯按鈕
-            document.getElementById('searchResults').addEventListener('click', function (e) {
-                if (e.target && e.target.classList.contains('edit_btn')) {
-                    const recordId = e.target.getAttribute('data-id');
-                    if (recordId) {
-                        window.location.href = `/Home/Edit/${recordId}`;
-                    }
-                }
-            });
-        });
-    }
-});
