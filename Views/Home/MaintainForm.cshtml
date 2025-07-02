@@ -1,0 +1,206 @@
+﻿@model myWebApp.Models.MaintainRecordViewModel
+
+@functions {
+    public static string ToRocDate(DateTime? date)
+    {
+        if (date == null) return "";
+        var rocYear = date.Value.Year - 1911;
+        return $"{rocYear}{date.Value:/MM/dd HH:mm:ss}";
+    }
+
+    public static string ToRocDateStr(DateTime? date)
+    {
+        if (date == null) return "";
+        var rocYear = date.Value.Year - 1911;
+        return $"{rocYear.ToString("000")}{date.Value:MMdd}";
+    }
+
+    public static string ToTimeStr(DateTime? date)
+    {
+        if (date == null) return "";
+        return $"{date.Value:HHmm}";
+    }
+}
+
+<div style="margin-bottom:20px;">
+    <button type="button" class="btn btn-secondary" onclick="window.history.back();" style="float:left;">回清單頁</button>
+</div>
+
+<form id="maintainForm" method="post" data-mode="@ViewBag.Mode">
+    <table class="table table-bordered w-auto">
+        <tbody>
+            <tr>
+                <th>序號</th>
+                <td>
+                    @Model.record_id
+                    <input type="hidden" id="record_id" name="record_id" value="@Model.record_id" />
+                </td>
+                <th>申報日期</th>
+                <td>
+                    <input type="text" class="form-control" id="apply_date_roc" name="apply_date_roc" value="@ToRocDateStr(Model.apply_date)">
+                    <input type="text" class="form-control" id="apply_time" name="apply_time" value="@ToTimeStr(Model.apply_date)">
+                </td>
+            </tr>
+            <tr>
+                <th>使用單位</th>
+                <td>
+                    <select class="form-control form-select" id="depart_code" name="depart_code">
+                        @foreach (var item in ViewBag.Departments as List<SelectListItem>)
+                        {
+                            if (item.Value == Model.depart_code)
+                            {
+                                <option value="@item.Value" selected>@item.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </td>
+                <th>使用者</th>
+                <td>
+                    <select class="form-control form-select" id="staff_id" name="staff_id">
+                        @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
+                        {
+                            if (item.Value == (Model.staff_id?.ToString() ?? ""))
+                            {
+                                <option value="@item.Value" selected>@item.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>問題類別</th>
+                <td>
+                    <select class="form-control form-select" id="problem_type" name="problem_type">
+                        @foreach (var item in ViewBag.problemTypes as List<SelectListItem>)
+                        {
+                            if (item.Value == Model.problem_type)
+                            {
+                                <option value="@item.Value" selected>@item.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </td>
+                <th>電話</th>
+                <td>
+                    <input type="text" class="form-control" id="tel" name="tel" value="@Model.tel">
+                </td>
+            </tr>
+            <tr>
+                <th>記錄人員</th>
+                <td colspan="3">
+                    <select class="form-control form-select" id="record_staff_id" name="record_staff_id">
+                        @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
+                        {
+                            if (item.Value ==  (Model.record_staff_id?.ToString() ?? ""))
+                            {
+                                <option value="@item.Value" selected>@item.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>問題描述</th>
+                <td colspan="3">
+                    <textarea class="form-control" id="description" name="description" rows="3">@Model.description</textarea>
+                </td>
+            </tr>
+            <tr>
+                <th>處理人員</th>
+                <td colspan="3">
+                    <select class="form-control form-select" id="processing_staff_id" name="processing_staff_id">
+                        @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
+                        {
+                            if (item.Value == (Model.processing_staff_id?.ToString() ?? ""))
+                            {
+                                <option value="@item.Value" selected>@item.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>處理類別</th>
+                <td colspan="3">    
+                    @foreach (var item in ViewBag.processingTypes as List<SelectListItem>)
+                    {
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" 
+                                name="processing_type" id="processing_type_@item.Value" 
+                                value="@item.Value" 
+                                @(item.Value == Model.processing_type ? "checked" : "")>
+                            <label class="form-check-label me-3" for="processing_type_@item.Value">@item.Text</label>
+                            </div>
+                    }
+                    <input type="text" class="form-control" id="called_firm" name="called_firm" value="@Model.called_firm">
+                </td>
+            </tr>
+            <tr>
+                <th>解決方式</th>
+                <td colspan="3">
+                    <textarea class="form-control" id="solution" name="solution" rows="3">@Model.solution</textarea>
+                </td>
+            </tr>
+            <tr>
+                <th>完成日期</th>
+                <td>
+                    <input type="text" class="form-control" id="completion_date_roc" name="completion_date_roc" value="@ToRocDateStr(Model.completion_date)">
+                    <input type="text" class="form-control" id="completion_time" name="completion_time" value="@ToTimeStr(Model.completion_date)">
+                </td>
+                <th>處理時間</th>
+                <td>
+                    @{
+                        int totalMinutes = Model.processing_minutes ?? 0;
+                        int hours = totalMinutes / 60;
+                        int minutes = totalMinutes % 60;
+                    }
+                    <input type="text" class="form-control" id="hours" value="@hours">小時
+                    <input type="text" class="form-control" id="minutes" value="@minutes">分鐘
+                </td>
+            </tr>
+            <tr>
+                <th>更新人員</th>
+                <td>
+                    @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
+                    {
+                        if (item.Value == (Model.update_user_id?.ToString() ?? ""))
+                        {
+                            @item.Text
+                        }
+                    }
+                </td>
+                <th>更新日期</th>
+                <td>
+                    @ToRocDate(Model.update_date)
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="text-end">
+        <button type="submit" class="btn btn-primary">儲存</button>
+    </div>
+</form>
+    
+
+<script src="~/js/common.js"></script>
+<script src="~/js/maintainForm.js"></script>

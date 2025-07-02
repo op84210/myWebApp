@@ -4,8 +4,8 @@ public class SearchConditionViewModel
     public DateTime? ApplyEndDate { get; set; }
     public DateTime? CompletionStartDate { get; set; }
     public DateTime? CompletionEndDate { get; set; }
-    public string? DepartCode { get; set; }
-    public string? ProblemType { get; set; }
-    public int? ProcessingStaffId { get; set; }
-    public string? ProcessingType { get; set; }
+    public string? depart_code { get; set; }
+    public string? problem_type { get; set; }
+    public int? processing_staff_id { get; set; }
+    public string? processing_type { get; set; }
 }

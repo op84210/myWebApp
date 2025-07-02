@@ -61,39 +61,6 @@ public class HomeController : Controller
         return connStr;
     }
 
-    // [HttpGet]
-    // public async Task<IActionResult> GetDropdownOptions()
-    // {
-    //     try
-    //     {
-    //         var connStr = GetConnectionString();
-
-    //         using (var conn = new SqlConnection(connStr))
-    //         {
-    //             await conn.OpenAsync();
-
-    //             var departments = await GetDepartments(conn);
-    //             var problemTypes = await GetProblemTypes(conn);
-    //             var processingStaffIds = await GetProcessingStaffIds(conn);
-    //             var processingTypes = await GetProcessingTypes(conn);
-
-    //             var result = new
-    //             {
-    //                 departments,
-    //                 problemTypes,
-    //                 processingStaffIds,
-    //                 processingTypes
-    //             };
-
-    //             return Json(result);
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return Content("連線失敗：" + ex.Message);
-    //     }
-    // }
-
     [HttpPost]
     public async Task<IActionResult> Search([FromForm] SearchConditionViewModel model)
     {
@@ -109,14 +76,14 @@ public class HomeController : Controller
 
                 cmd.CommandText = @"
                 SELECT 
-                    A.record_id as recordId,
-                    A.apply_date as applyDate,
-                    B.depart_name as departName,
-                    C.staff_name as userName,
-                    D.description as problemType,
-                    E.description as processingType,
-                    F.staff_name as processingStaff,
-                    A.completion_date as completionDate
+                    A.record_id as record_id,
+                    A.apply_date as apply_date,
+                    B.depart_name as depart_name,
+                    C.staff_name as staff_name,
+                    D.description as problem_type,
+                    E.description as processing_type,
+                    F.staff_name as processing_staff_name,
+                    A.completion_date as completion_date
                 FROM 
                     ism_maintain_record A LEFT JOIN 
                     ism_department B ON A.depart_code = B.depart_code LEFT JOIN 
@@ -129,19 +96,19 @@ public class HomeController : Controller
                     (@applyEndDate IS NULL OR A.apply_date <= @applyEndDate) AND 
                     (@completionStartDate IS NULL OR A.completion_date >= @completionStartDate) AND 
                     (@completionEndDate IS NULL OR A.completion_date <= @completionEndDate) AND 
-                    (@departCode IS NULL OR A.depart_code = @departCode) AND 
-                    (@problemType IS NULL OR A.problem_type = @problemType) AND 
-                    (@processingStaffId IS NULL OR A.processing_staff_id = @processingStaffId) AND 
-                    (@processingType IS NULL OR A.processing_type = @processingType)";
+                    (@depart_code IS NULL OR A.depart_code = @depart_code) AND 
+                    (@problem_type IS NULL OR A.problem_type = @problem_type) AND 
+                    (@processing_staff_id IS NULL OR A.processing_staff_id = @processing_staff_id) AND 
+                    (@processing_type IS NULL OR A.processing_type = @processing_type)";
 
                 cmd.Parameters.AddWithValue("@applyStartDate", (object?)model.ApplyStartDate ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@applyEndDate", (object?)model.ApplyEndDate ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@completionStartDate", (object?)model.CompletionStartDate ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@completionEndDate", (object?)model.CompletionEndDate ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@departCode", (object?)model.DepartCode ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@problemType", (object?)model.ProblemType ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@processingStaffId", (object?)model.ProcessingStaffId ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@processingType", (object?)model.ProcessingType ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@depart_code", (object?)model.depart_code ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@problem_type", (object?)model.problem_type ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@processing_staff_id", (object?)model.processing_staff_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@processing_type", (object?)model.processing_type ?? DBNull.Value);
 
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
@@ -150,14 +117,14 @@ public class HomeController : Controller
                         results.Add(new SearchResultViewModel
                         {
                             // 根據你的資料表欄位調整
-                            RecordId = (int)reader["recordId"],//序號
-                            ApplyDate = (DateTime)reader["applyDate"],//申報日期
-                            DepartName = (String)reader["departName"],//使用單位
-                            UserName = (String)reader["userName"],//使用者
-                            ProblemType = (String)reader["problemType"],//問題類別
-                            ProcessingType = (String)reader["processingType"],//處理類別
-                            ProcessingStaff = (String)reader["processingStaff"],//處理人員
-                            CompletionDate = (DateTime)reader["completionDate"]//完成日期
+                            record_id = (int)reader["record_id"],//序號
+                            apply_date = (DateTime)reader["apply_date"],//申報日期
+                            depart_name = (String)reader["depart_name"],//使用單位
+                            staff_name = (String)reader["staff_name"],//使用者
+                            problem_type = (String)reader["problem_type"],//問題類別
+                            processing_type = (String)reader["processing_type"],//處理類別
+                            processing_staff_name = (String)reader["processing_staff_name"],//處理人員
+                            completion_date = (DateTime)reader["completion_date"]//完成日期
                         });
                     }
                 }
@@ -181,18 +148,14 @@ public class HomeController : Controller
             {
                 await conn.OpenAsync();
 
+                ViewBag.Mode = "Edit";
                 ViewBag.Departments = await GetDepartments(conn);
                 ViewBag.problemTypes = await GetProblemTypes(conn);
-                ViewBag.processingStaffIds = await GetProcessingStaffIds(conn);
                 ViewBag.processingTypes = await GetProcessingTypes(conn);
+                ViewBag.staffIds = await GetStaffIds(conn);
 
                 var cmd = conn.CreateCommand();
-                cmd.CommandText = @"SELECT 
-                                        *
-                                    FROM 
-                                        ism_maintain_record
-                                    WHERE 
-                                        record_id = @id";
+                cmd.CommandText = @"SELECT * FROM ism_maintain_record WHERE record_id = @id";
                 cmd.Parameters.AddWithValue("@id", id);
 
                 using (var reader = await cmd.ExecuteReaderAsync())
@@ -223,7 +186,7 @@ public class HomeController : Controller
                             satisfaction_update_user_id = reader["satisfaction_update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["satisfaction_update_user_id"]),
                             satisfaction_update_date = reader["satisfaction_update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["satisfaction_update_date"])
                         };
-                        return View(model);
+                        return View("MaintainForm", model);
                     }
                     else
                     {
@@ -236,6 +199,68 @@ public class HomeController : Controller
         {
             return Content("查詢失敗：" + ex.Message);
         }
+    }
+   
+    // 編輯存檔
+    [HttpPost]
+    public IActionResult Edit(MaintainRecordViewModel model)
+    {
+        Console.WriteLine($"[Edit-POST] model={System.Text.Json.JsonSerializer.Serialize(model)}，時間：{DateTime.Now}");
+
+        if (ModelState.IsValid)
+        {
+            // 更新資料邏輯
+            // ...
+            return RedirectToAction("Index");
+        }
+        ViewBag.Mode = "Edit";
+        // ...下拉選單資料...
+        return View("MaintainForm", model);
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> Create()
+    {
+        try
+        {
+            var connStr = GetConnectionString();
+            using (var conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                ViewBag.Mode = "Create";
+                ViewBag.Departments = await GetDepartments(conn);
+                ViewBag.problemTypes = await GetProblemTypes(conn);
+                ViewBag.processingTypes = await GetProcessingTypes(conn);
+                ViewBag.staffIds = await GetStaffIds(conn);
+
+                var model = new MaintainRecordViewModel { };
+
+                return View("MaintainForm", model);
+
+            }
+        }
+        catch (Exception ex)
+        {
+            return Content("查詢失敗：" + ex.Message);
+        }
+    }
+
+    // 新增存檔
+    [HttpPost]
+    public IActionResult Create(MaintainRecordViewModel model)
+    {
+        Console.WriteLine($"[Create-POST] model={System.Text.Json.JsonSerializer.Serialize(model)}，時間：{DateTime.Now}");
+
+        if (ModelState.IsValid)
+        {
+            // 新增資料邏輯
+            // ...
+            return RedirectToAction("Index");
+        }
+        ViewBag.Mode = "Create";
+        // ...下拉選單資料...
+        return View("MaintainForm", model);
     }
 
     /// <summary>
@@ -310,7 +335,7 @@ public class HomeController : Controller
     {
         var list = new List<SelectListItem>();
         var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'PROCESSING' ORDER BY description";
+        cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'PROCESSING' ORDER BY code";
         using (var reader = await cmd.ExecuteReaderAsync())
         {
             while (await reader.ReadAsync())
@@ -319,6 +344,24 @@ public class HomeController : Controller
                 {
                     Value = reader["code"].ToString(),
                     Text = reader["description"].ToString()
+                });
+            }
+        }
+        return list;
+    }
+    private async Task<List<SelectListItem>> GetStaffIds(SqlConnection conn)
+    {
+        var list = new List<SelectListItem>();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"SELECT staff_id, staff_name FROM ism_staff ORDER BY staff_name";
+        using (var reader = await cmd.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                list.Add(new SelectListItem
+                {
+                    Value = reader["staff_id"].ToString(),
+                    Text = reader["staff_name"].ToString()
                 });
             }
         }

@@ -1,11 +1,11 @@
 public class SearchResultViewModel
 {
-    public int RecordId { get; set; }
-    public DateTime? ApplyDate { get; set; }
-    public string? DepartName { get; set; }
-    public string? UserName { get; set; }
-    public string? ProblemType { get; set; }
-    public string? ProcessingType { get; set; }
-    public string? ProcessingStaff { get; set; }
-    public DateTime? CompletionDate { get; set; }
+    public int record_id { get; set; }
+    public DateTime? apply_date { get; set; }
+    public string? depart_name { get; set; }
+    public string? staff_name { get; set; }
+    public string? problem_type { get; set; }
+    public string? processing_type { get; set; }
+    public string? processing_staff_name { get; set; }
+    public DateTime? completion_date { get; set; }
 }

@@ -15,14 +15,23 @@
             // 渲染表格後，監聽所有編輯按鈕
             document.getElementById('searchResults').addEventListener('click', function (e) {
                 if (e.target && e.target.classList.contains('edit_btn')) {
-                    const recordId = e.target.getAttribute('data-id');
-                    if (recordId) {
-                        window.location.href = `/Home/Edit/${recordId}`;
+                    const record_id = e.target.getAttribute('data-id');
+                    if (record_id) {
+                        window.location.href = `/Home/Edit/${record_id}`;
                     }
                 }
             });
         });
     }
+    
+    // 新增按鈕事件
+    var addBtn = document.getElementById('addBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', function () {
+            window.location.href = '/Home/Create'; 
+        });
+    }
+
 });
 
 function validateForm(formData) {
@@ -74,15 +83,15 @@ async function searchAndRender(formData) {
         } else {
             html = data.map(row => `
                 <tr>
-                    <td>${row.RecordId || ''}</td>
-                    <td>${toTaiwanDate(row.ApplyDate, "R/MM/dd HH:mm") || ''}</td>
-                    <td>${row.DepartName || ''}</td>
-                    <td>${row.UserName || ''}</td>
-                    <td>${row.ProblemType || ''}</td>
-                    <td>${row.ProcessingType || ''}</td>
-                    <td>${row.ProcessingStaff || ''}</td>
-                    <td>${toTaiwanDate(row.CompletionDate, "R/MM/dd HH:mm") || ''}</td>
-                    <td><button class="btn btn-secondary edit_btn" data-id="${row.RecordId}">編輯</button></td>
+                    <td>${row.record_id || ''}</td>
+                    <td>${toTaiwanDate(row.apply_date, "R/MM/dd HH:mm") || ''}</td>
+                    <td>${row.depart_name || ''}</td>
+                    <td>${row.staff_name || ''}</td>
+                    <td>${row.problem_type || ''}</td>
+                    <td>${row.processing_type || ''}</td>
+                    <td>${row.processing_staff_name || ''}</td>
+                    <td>${toTaiwanDate(row.completion_date, "R/MM/dd HH:mm") || ''}</td>
+                    <td><button class="btn btn-secondary edit_btn" data-id="${row.record_id}">編輯</button></td>
                 </tr>
             `).join('');
             html = '<table class="table table-bordered"><thead><tr>' +
