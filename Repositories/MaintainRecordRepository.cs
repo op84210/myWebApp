@@ -4,8 +4,11 @@ using Microsoft.Data.SqlClient;
 public class MaintainRecordRepository : IMaintainRecordRepository
 {
     private readonly string _connStr;
-    public MaintainRecordRepository(string connStr) { _connStr = connStr; }
-
+    public MaintainRecordRepository(IConfiguration config)
+    {
+        _connStr = config.GetConnectionString("DefaultConnection") 
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    }
     public async Task<List<SearchResultViewModel>> SearchAsync(SearchConditionViewModel model)
     {
         var results = new List<SearchResultViewModel>();

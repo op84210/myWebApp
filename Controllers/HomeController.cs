@@ -13,12 +13,11 @@ public class HomeController : Controller
     private readonly IMaintainRecordRepository _repoMaintainRecord;
     private readonly IDropdownDataRepository _repoDropdownData;
 
-    public HomeController(ILogger<HomeController> logger, IConfiguration config)
+    public HomeController(ILogger<HomeController> logger,  IMaintainRecordRepository repoMaintainRecord,    IDropdownDataRepository repoDropdownData)
     {
-        string connectionString = config?.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(config), "Configuration cannot be null");
         _logger = logger;
-        _repoMaintainRecord = new MaintainRecordRepository(connectionString);
-        _repoDropdownData = new DropdownDataRepository(connectionString);
+        _repoMaintainRecord = repoMaintainRecord;
+        _repoDropdownData = repoDropdownData;
     }
 
     public async Task<IActionResult> Index()

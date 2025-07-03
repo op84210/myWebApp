@@ -4,7 +4,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 public class DropdownDataRepository : IDropdownDataRepository
 {
     private readonly string _connStr;
-    public DropdownDataRepository(string connStr) { _connStr = connStr; }
+    public DropdownDataRepository(IConfiguration config)
+    {
+        _connStr = config.GetConnectionString("DefaultConnection") 
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    }
 
     public async Task<List<SelectListItem>> GetDepartmentsAsync()
     {

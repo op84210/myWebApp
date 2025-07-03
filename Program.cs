@@ -6,6 +6,8 @@ builder.Services.AddControllersWithViews()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
+builder.Services.AddScoped<IMaintainRecordRepository, MaintainRecordRepository>();
+builder.Services.AddScoped<IDropdownDataRepository, DropdownDataRepository>();
 
 var app = builder.Build();
 
