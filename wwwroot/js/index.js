@@ -43,17 +43,17 @@
 function validateForm(formData) {
 
     // 取得民國年欄位
-    const applyStart = document.getElementById('applyStartDate').value.trim();
-    const applyEnd = document.getElementById('applyEndDate').value.trim();
-    const completionStart = document.getElementById('completionStartDate').value.trim();
-    const completionEnd = document.getElementById('completionEndDate').value.trim();
+    const strApplyStart = document.getElementById('applyStartDate').value.trim();
+    const strApplyEnd = document.getElementById('applyEndDate').value.trim();
+    const strCompletionStart = document.getElementById('completionStartDate').value.trim();
+    const strCompletionEnd = document.getElementById('completionEndDate').value.trim();
 
     // 驗證格式
     const dateFields = [
-        { id: 'applyStartDate', value: applyStart },
-        { id: 'applyEndDate', value: applyEnd },
-        { id: 'completionStartDate', value: completionStart },
-        { id: 'completionEndDate', value: completionEnd }
+        { id: 'applyStartDate', value: strApplyStart },
+        { id: 'applyEndDate', value: strApplyEnd },
+        { id: 'completionStartDate', value: strCompletionStart },
+        { id: 'completionEndDate', value: strCompletionEnd }
     ];
 
     for (const field of dateFields) {
@@ -65,10 +65,10 @@ function validateForm(formData) {
     }
 
     // 轉換成西元年並暫存到隱藏欄位或 FormData
-    if (applyStart) formData.set('applyStartDate', rocToAD(applyStart));
-    if (applyEnd) formData.set('applyEndDate', rocToAD(applyEnd));
-    if (completionStart) formData.set('completionStartDate', rocToAD(completionStart));
-    if (completionEnd) formData.set('completionEndDate', rocToAD(completionEnd));
+    if (strApplyStart) formData.set('applyStartDate', rocToAD(strApplyStart));
+    if (strApplyEnd) formData.set('applyEndDate', rocToAD(strApplyEnd));
+    if (strCompletionStart) formData.set('completionStartDate', rocToAD(strCompletionStart));
+    if (strCompletionEnd) formData.set('completionEndDate', rocToAD(strCompletionEnd));
 
     return true;
 }

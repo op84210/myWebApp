@@ -4,22 +4,18 @@ document.addEventListener('DOMContentLoaded', async function () {
     var maintainForm = document.getElementById('maintainForm');
     if (maintainForm) {
 
-        var mode = maintainForm.getAttribute('data-mode');
+        var strMode = maintainForm.getAttribute('data-mode');
         maintainForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const formData = new FormData(maintainForm);
             if (!validateForm(formData)) return;
 
-            console.log(Object.fromEntries(formData.entries()));
-
-            if (mode === 'Edit') {
+            if (strMode === 'Edit') {
                 await edit(formData);
             } else {
                 await create(formData);
             }
-
-
         });
     }
 
@@ -28,8 +24,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (delBtn) {
         delBtn.addEventListener('click', async function () {
             if (confirm('確定要刪除這筆資料嗎？')) {
-                var record_id = document.getElementById('record_id').value;
-                await deleteData(record_id);
+                var strRecordId = document.getElementById('record_id').value;
+                await deleteData(strRecordId);
             }
         });
     }
@@ -44,16 +40,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 function validateForm(formData) {
 
     // 取得民國年欄位
-    var apply_date_roc = formData.get('apply_date_roc');
-    var completion_date_roc = formData.get('completion_date_roc');
+    var strApplyDateROC = formData.get('apply_date_roc');
+    var strCompletionDateROC = formData.get('completion_date_roc');
 
     // 驗證格式
-    const dateFields = [
-        { id: 'apply_date_roc', value: apply_date_roc },
-        { id: 'completion_date_roc', value: completion_date_roc }
+    const aryDateFields = [
+        { id: 'apply_date_roc', value: strApplyDateROC },
+        { id: 'completion_date_roc', value: strCompletionDateROC }
     ];
 
-    for (const field of dateFields) {
+    for (const field of aryDateFields) {
         if (!field.value || !/^\d{7}$/.test(field.value)) {
             alert('請輸入正確的民國年格式（如1130701）');
             document.getElementById(field.id).focus();
@@ -62,24 +58,24 @@ function validateForm(formData) {
     }
 
     // 取得時間欄位
-    var apply_time = formData.get('apply_time');
-    var completion_time = formData.get('completion_time');
+    var strApplyTime = formData.get('apply_time');
+    var strCompletionTime = formData.get('completion_time');
 
-    const timeFields = [
-        { id: 'apply_time', value: apply_time, name: '申報時間' },
-        { id: 'completion_time', value: completion_time, name: '完成時間' }
+    const aryTimeFields = [
+        { id: 'apply_time', value: strApplyTime, name: '申報時間' },
+        { id: 'completion_time', value: strCompletionTime, name: '完成時間' }
     ];
 
-    for (const field of timeFields) {
+    for (const field of aryTimeFields) {
         if (field.value) {
             if (!/^\d{4}$/.test(field.value)) {
                 alert(field.name + '請輸入4碼數字（如0930）');
                 document.getElementById(field.id).focus();
                 return false;
             }
-            const hour = parseInt(field.value.substring(0, 2), 10);
+            const intHour = parseInt(field.value.substring(0, 2), 10);
             const minute = parseInt(field.value.substring(2, 4), 10);
-            if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+            if (intHour < 0 || intHour > 23 || minute < 0 || minute > 59) {
                 alert(field.name + '請輸入正確的24小時制時間（如0930、2359）');
                 document.getElementById(field.id).focus();
                 return false;
@@ -88,21 +84,21 @@ function validateForm(formData) {
     }
 
     // 轉換成西元年並存到FormData
-    var apply_date = mergeDateAndTime(apply_date_roc, apply_time);
-    formData.set('apply_date', apply_date);
+    var strApplyDate = mergeDateAndTime(strApplyDateROC, strApplyTime);
+    formData.set('apply_date', strApplyDate);
 
-    var completion_date = mergeDateAndTime(completion_date_roc, completion_time);
-    formData.set('completion_date', completion_date);
+    var strCompletionDate = mergeDateAndTime(strCompletionDateROC, strCompletionTime);
+    formData.set('completion_date', strCompletionDate);
 
     //計算處理時間
-    var hours = parseInt(formData.get('hours'), 10) || 0;
-    var minutes = parseInt(formData.get('minutes'), 10) || 0;
-    if (hours < 0 || minutes < 0 || minutes > 59) {
+    var intHours = parseInt(formData.get('hours'), 10) || 0;
+    var intMinutes = parseInt(formData.get('minutes'), 10) || 0;
+    if (intHours < 0 || intMinutes < 0 || intMinutes > 59) {
         alert('請輸入正確的處理時間（小時需>=0，分鐘0~59）');
         return false;
     }
-    var processing_minutes = hours * 60 + minutes;
-    formData.set('processing_minutes', processing_minutes);
+    var intProcessingMinutes = intHours * 60 + intMinutes;
+    formData.set('processing_minutes', intProcessingMinutes);
 
     return true;
 }
@@ -152,12 +148,12 @@ async function create(formData) {
 }
 
 //刪除
-async function deleteData(record_id) {
+async function deleteData(strRecordId) {
     try {
         const res = await fetch('/Home/Delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ "record_id": record_id })
+            body: JSON.stringify({ "record_id": strRecordId })
         });
 
         const data = await res.json();

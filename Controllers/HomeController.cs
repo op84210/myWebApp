@@ -74,14 +74,14 @@ public class HomeController : Controller
         }
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Edit(int id)
+    [HttpGet("Home/Edit/{intId}")]
+    public async Task<IActionResult> Edit(int intId)
     {
         try
         {
             ViewBag.Mode = "Edit";
 
-            var model = await _repoMaintainRecord.GetByIdAsync(id);
+            var model = await _repoMaintainRecord.GetByIdAsync(intId);
             if (model == null) return NotFound();
 
             ViewBag.Departments = await _repoDropdownData.GetDepartmentsAsync();
@@ -183,9 +183,9 @@ public class HomeController : Controller
 
         try
         {
-            int record_id = req.record_id ?? 0;
-            int rows = await _repoMaintainRecord.DeleteAsync(record_id);
-            if (rows > 0)
+            int intRecordId = req.record_id ?? 0;
+            int intRows = await _repoMaintainRecord.DeleteAsync(intRecordId);
+            if (intRows > 0)
                 return Json(ApiResponse.Ok());
             else
                 return Json(ApiResponse.Fail("找不到資料或已刪除"));

@@ -3,20 +3,20 @@ using Microsoft.Data.SqlClient;
 
 public class MaintainRecordRepository : IMaintainRecordRepository
 {
-    private readonly string _connStr;
+    private readonly string m_strConnectionString;
     public MaintainRecordRepository(IConfiguration config)
     {
-        _connStr = config.GetConnectionString("DefaultConnection") 
+        m_strConnectionString = config.GetConnectionString("DefaultConnection") 
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
     }
     public async Task<List<SearchResultViewModel>> SearchAsync(SearchConditionViewModel model)
     {
         var results = new List<SearchResultViewModel>();
       
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
 
             cmd.CommandText = @"
                 SELECT 
@@ -54,20 +54,20 @@ public class MaintainRecordRepository : IMaintainRecordRepository
             cmd.Parameters.AddWithValue("@processing_staff_id", (object?)model.processing_staff_id ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@processing_type", (object?)model.processing_type ?? DBNull.Value);
 
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var dr = await cmd.ExecuteReaderAsync())
             {
-                while (await reader.ReadAsync())
+                while (await dr.ReadAsync())
                 {
                     results.Add(new SearchResultViewModel
                     {
-                        record_id = (int)reader["record_id"],//序號
-                        apply_date = (DateTime)reader["apply_date"],//申報日期
-                        depart_name = reader["depart_name"].ToString(),//使用單位
-                        staff_name = reader["staff_name"].ToString(),//使用者
-                        problem_type = reader["problem_type"].ToString(),//問題類別
-                        processing_type = reader["processing_type"].ToString(),//處理類別
-                        processing_staff_name = reader["processing_staff_name"].ToString(),//處理人員
-                        completion_date = (DateTime)reader["completion_date"]//完成日期
+                        record_id = (int)dr["record_id"],//序號
+                        apply_date = (DateTime)dr["apply_date"],//申報日期
+                        depart_name = dr["depart_name"].ToString(),//使用單位
+                        staff_name = dr["staff_name"].ToString(),//使用者
+                        problem_type = dr["problem_type"].ToString(),//問題類別
+                        processing_type = dr["processing_type"].ToString(),//處理類別
+                        processing_staff_name = dr["processing_staff_name"].ToString(),//處理人員
+                        completion_date = (DateTime)dr["completion_date"]//完成日期
                     });
                 }
             }
@@ -77,41 +77,41 @@ public class MaintainRecordRepository : IMaintainRecordRepository
 
     public async Task<MaintainRecordViewModel?> GetByIdAsync(int id)
     {
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
 
               cmd.CommandText = @"SELECT * FROM ism_maintain_record WHERE record_id = @id";
                 cmd.Parameters.AddWithValue("@id", id);
 
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var dr = await cmd.ExecuteReaderAsync())
             {
-                if (await reader.ReadAsync())
+                if (await dr.ReadAsync())
                 {
                     return new MaintainRecordViewModel
                     {
-                        record_id = reader["record_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["record_id"]),
-                        apply_date = reader["apply_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["apply_date"]),
-                        serial_no = reader["serial_no"] == DBNull.Value ? null : reader["serial_no"].ToString(),
-                        depart_code = reader["depart_code"] == DBNull.Value ? null : reader["depart_code"].ToString(),
-                        staff_id = reader["staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["staff_id"]),
-                        tel = reader["tel"] == DBNull.Value ? null : reader["tel"].ToString(),
-                        problem_type = reader["problem_type"] == DBNull.Value ? null : reader["problem_type"].ToString(),
-                        record_staff_id = reader["record_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["record_staff_id"]),
-                        processing_staff_id = reader["processing_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["processing_staff_id"]),
-                        processing_type = reader["processing_type"] == DBNull.Value ? null : reader["processing_type"].ToString(),
-                        description = reader["description"] == DBNull.Value ? null : reader["description"].ToString(),
-                        solution = reader["solution"] == DBNull.Value ? null : reader["solution"].ToString(),
-                        called_firm = reader["called_firm"] == DBNull.Value ? null : reader["called_firm"].ToString(),
-                        completion_date = reader["completion_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["completion_date"]),
-                        processing_minutes = reader["processing_minutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["processing_minutes"]),
-                        update_user_id = reader["update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["update_user_id"]),
-                        update_date = reader["update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["update_date"]),
-                        satisfaction = reader["satisfaction"] == DBNull.Value ? null : reader["satisfaction"].ToString(),
-                        recommendation = reader["recommendation"] == DBNull.Value ? null : reader["recommendation"].ToString(),
-                        satisfaction_update_user_id = reader["satisfaction_update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["satisfaction_update_user_id"]),
-                        satisfaction_update_date = reader["satisfaction_update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["satisfaction_update_date"])
+                        record_id = dr["record_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["record_id"]),
+                        apply_date = dr["apply_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["apply_date"]),
+                        serial_no = dr["serial_no"] == DBNull.Value ? null : dr["serial_no"].ToString(),
+                        depart_code = dr["depart_code"] == DBNull.Value ? null : dr["depart_code"].ToString(),
+                        staff_id = dr["staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["staff_id"]),
+                        tel = dr["tel"] == DBNull.Value ? null : dr["tel"].ToString(),
+                        problem_type = dr["problem_type"] == DBNull.Value ? null : dr["problem_type"].ToString(),
+                        record_staff_id = dr["record_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["record_staff_id"]),
+                        processing_staff_id = dr["processing_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["processing_staff_id"]),
+                        processing_type = dr["processing_type"] == DBNull.Value ? null : dr["processing_type"].ToString(),
+                        description = dr["description"] == DBNull.Value ? null : dr["description"].ToString(),
+                        solution = dr["solution"] == DBNull.Value ? null : dr["solution"].ToString(),
+                        called_firm = dr["called_firm"] == DBNull.Value ? null : dr["called_firm"].ToString(),
+                        completion_date = dr["completion_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["completion_date"]),
+                        processing_minutes = dr["processing_minutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["processing_minutes"]),
+                        update_user_id = dr["update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["update_user_id"]),
+                        update_date = dr["update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["update_date"]),
+                        satisfaction = dr["satisfaction"] == DBNull.Value ? null : dr["satisfaction"].ToString(),
+                        recommendation = dr["recommendation"] == DBNull.Value ? null : dr["recommendation"].ToString(),
+                        satisfaction_update_user_id = dr["satisfaction_update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["satisfaction_update_user_id"]),
+                        satisfaction_update_date = dr["satisfaction_update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["satisfaction_update_date"])
                     };
                 }
             }
@@ -122,10 +122,10 @@ public class MaintainRecordRepository : IMaintainRecordRepository
 
     public async Task<int> CreateAsync(MaintainRecordViewModel model)
     {
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO ism_maintain_record
                 (apply_date, serial_no, depart_code, staff_id, tel, problem_type, record_staff_id, processing_staff_id, processing_type, description, solution, called_firm, completion_date, processing_minutes, update_user_id, update_date, satisfaction, recommendation, satisfaction_update_user_id, satisfaction_update_date)
@@ -161,10 +161,10 @@ public class MaintainRecordRepository : IMaintainRecordRepository
 
     public async Task<int> UpdateAsync(MaintainRecordViewModel model)
     {
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
              cmd.CommandText = @"
                 UPDATE ism_maintain_record SET
                     apply_date = @apply_date,
@@ -219,11 +219,11 @@ public class MaintainRecordRepository : IMaintainRecordRepository
     
     public async Task<int> DeleteAsync(int record_id)
     {
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
+            await cn.OpenAsync();
 
-            var cmd = conn.CreateCommand();
+            var cmd = cn.CreateCommand();
             cmd.CommandText = "DELETE FROM ism_maintain_record WHERE record_id = @record_id";
             cmd.Parameters.AddWithValue("@record_id", record_id);
 

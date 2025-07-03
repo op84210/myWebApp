@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 public interface IDropdownDataRepository
 {
-    Task<List<SelectListItem>> GetStaffsByDepartmentAsync(string depart_code);
+    Task<List<SelectListItem>> GetStaffsByDepartmentAsync(string strDepartCode);
     Task<List<SelectListItem>> GetDepartmentsAsync();
     Task<List<SelectListItem>> GetProblemTypesAsync();
     Task<List<SelectListItem>> GetProcessingStaffIdsAsync();

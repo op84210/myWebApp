@@ -3,29 +3,29 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 public class DropdownDataRepository : IDropdownDataRepository
 {
-    private readonly string _connStr;
+    private readonly string m_strConnectionString;
     public DropdownDataRepository(IConfiguration config)
     {
-        _connStr = config.GetConnectionString("DefaultConnection") 
+        m_strConnectionString = config.GetConnectionString("DefaultConnection") 
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
     }
-    public async Task<List<SelectListItem>> GetStaffsByDepartmentAsync(string depart_code)
+    public async Task<List<SelectListItem>> GetStaffsByDepartmentAsync(string strDepartCode)
     {
         var list = new List<SelectListItem>();
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
             cmd.CommandText = @"SELECT staff_id, staff_name FROM ism_staff WHERE depart_code = @depart_code ORDER BY staff_name";
-            cmd.Parameters.AddWithValue("@depart_code", depart_code);
-            using (var reader = await cmd.ExecuteReaderAsync())
+            cmd.Parameters.AddWithValue("@depart_code", strDepartCode);
+            using (var dr = await cmd.ExecuteReaderAsync())
             {
-                while (await reader.ReadAsync())
+                while (await dr.ReadAsync())
                 {
                     list.Add(new SelectListItem
                     {
-                        Value = reader["staff_id"].ToString(),
-                        Text = reader["staff_name"].ToString()
+                        Value = dr["staff_id"].ToString(),
+                        Text = dr["staff_name"].ToString()
                     });
                 }
             }
@@ -35,19 +35,19 @@ public class DropdownDataRepository : IDropdownDataRepository
     public async Task<List<SelectListItem>> GetDepartmentsAsync()
     {
         var list = new List<SelectListItem>();
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
             cmd.CommandText = "SELECT depart_code, depart_name FROM ism_department ORDER BY depart_name";
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var dr = await cmd.ExecuteReaderAsync())
             {
-                while (await reader.ReadAsync())
+                while (await dr.ReadAsync())
                 {
                     list.Add(new SelectListItem
                     {
-                        Value = reader["depart_code"].ToString(),
-                        Text = reader["depart_name"].ToString()
+                        Value = dr["depart_code"].ToString(),
+                        Text = dr["depart_name"].ToString()
                     });
                 }
             }
@@ -58,19 +58,19 @@ public class DropdownDataRepository : IDropdownDataRepository
     public async Task<List<SelectListItem>> GetProblemTypesAsync()
     {
         var list = new List<SelectListItem>();
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
             cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'QUESTION' ORDER BY description";
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var dr = await cmd.ExecuteReaderAsync())
             {
-                while (await reader.ReadAsync())
+                while (await dr.ReadAsync())
                 {
                     list.Add(new SelectListItem
                     {
-                        Value = reader["code"].ToString(),
-                        Text = reader["description"].ToString()
+                        Value = dr["code"].ToString(),
+                        Text = dr["description"].ToString()
                     });
                 }
             }
@@ -81,24 +81,24 @@ public class DropdownDataRepository : IDropdownDataRepository
     public async Task<List<SelectListItem>> GetProcessingStaffIdsAsync()
     {
         var list = new List<SelectListItem>();
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
             cmd.CommandText = @"SELECT staff_id, staff_name FROM ism_staff
                                 WHERE EXISTS (
                                     SELECT 1 FROM ism_maintain_record
                                     WHERE processing_staff_id = ism_staff.staff_id
                                 )
                                 ORDER BY staff_name";
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var dr = await cmd.ExecuteReaderAsync())
             {
-                while (await reader.ReadAsync())
+                while (await dr.ReadAsync())
                 {
                     list.Add(new SelectListItem
                     {
-                        Value = reader["staff_id"].ToString(),
-                        Text = reader["staff_name"].ToString()
+                        Value = dr["staff_id"].ToString(),
+                        Text = dr["staff_name"].ToString()
                     });
                 }
             }
@@ -109,19 +109,19 @@ public class DropdownDataRepository : IDropdownDataRepository
     public async Task<List<SelectListItem>> GetProcessingTypesAsync()
     {
         var list = new List<SelectListItem>();
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
             cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'PROCESSING' ORDER BY code";
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var dr = await cmd.ExecuteReaderAsync())
             {
-                while (await reader.ReadAsync())
+                while (await dr.ReadAsync())
                 {
                     list.Add(new SelectListItem
                     {
-                        Value = reader["code"].ToString(),
-                        Text = reader["description"].ToString()
+                        Value = dr["code"].ToString(),
+                        Text = dr["description"].ToString()
                     });
                 }
             }
@@ -132,19 +132,19 @@ public class DropdownDataRepository : IDropdownDataRepository
     public async Task<List<SelectListItem>> GetStaffsAsync()
     {
         var list = new List<SelectListItem>();
-        using (var conn = new SqlConnection(_connStr))
+        using (var cn = new SqlConnection(m_strConnectionString))
         {
-            await conn.OpenAsync();
-            var cmd = conn.CreateCommand();
+            await cn.OpenAsync();
+            var cmd = cn.CreateCommand();
             cmd.CommandText = "SELECT staff_id, staff_name FROM ism_staff ORDER BY staff_name";
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var dr = await cmd.ExecuteReaderAsync())
             {
-                while (await reader.ReadAsync())
+                while (await dr.ReadAsync())
                 {
                     list.Add(new SelectListItem
                     {
-                        Value = reader["staff_id"].ToString(),
-                        Text = reader["staff_name"].ToString()
+                        Value = dr["staff_id"].ToString(),
+                        Text = dr["staff_name"].ToString()
                     });
                 }
             }
