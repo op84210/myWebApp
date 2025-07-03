@@ -22,12 +22,20 @@
     }
 }
 
-<div style="margin-bottom:20px;">
-    <button type="button" class="btn btn-secondary" onclick="window.history.back();" style="float:left;">回清單頁</button>
-</div>
+
 
 <form id="maintainForm" method="post" data-mode="@ViewBag.Mode">
-    <table class="table table-bordered w-auto">
+    <div class="my-3 d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" onclick="window.history.back();">回清單頁</button>
+        <div>
+            @if (Model.record_id != null && Model.record_id > 0)
+            {
+                <button type="button" class="btn btn-danger ms-2" id="deleteBtn">刪除</button>
+            }
+            <button type="submit" class="btn btn-primary">儲存</button>
+        </div>
+    </div>
+    <table class="table table-bordered">
         <tbody>
             <tr>
                 <th>序號</th>
@@ -92,7 +100,7 @@
                         }
                     </select>
                 </td>
-                <th>電話</th>
+                <th>分機(電話)</th>
                 <td>
                     <input type="text" class="form-control" id="tel" name="tel" value="@Model.tel">
                 </td>
@@ -196,13 +204,7 @@
             </tr>
         </tbody>
     </table>
-    <div class="text-end">
-        <button type="submit" class="btn btn-primary">儲存</button>
-        @if (Model.record_id != null && Model.record_id > 0)
-        {
-            <button type="button" class="btn btn-danger ms-2" id="deleteBtn">刪除</button>
-        }
-    </div>
+  
 </form>
     
 
