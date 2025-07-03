@@ -9,25 +9,25 @@ namespace myWebApp.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-    private readonly IMaintainRecordRepository _repoMaintainRecord;
-    private readonly IDropdownDataRepository _repoDropdownData;
+    private readonly ILogger<HomeController> m_logger;
+    private readonly IMaintainRecordRepository m_repoMaintainRecord;
+    private readonly IDropdownDataRepository m_repoDropdownData;
 
     public HomeController(ILogger<HomeController> logger, IMaintainRecordRepository repoMaintainRecord, IDropdownDataRepository repoDropdownData)
     {
-        _logger = logger;
-        _repoMaintainRecord = repoMaintainRecord;
-        _repoDropdownData = repoDropdownData;
+        m_logger = logger;
+        m_repoMaintainRecord = repoMaintainRecord;
+        m_repoDropdownData = repoDropdownData;
     }
 
     public async Task<IActionResult> Index()
     {
         try
         {
-            ViewBag.Departments = await _repoDropdownData.GetDepartmentsAsync();
-            ViewBag.problemTypes = await _repoDropdownData.GetProblemTypesAsync();
-            ViewBag.processingStaffIds = await _repoDropdownData.GetProcessingStaffIdsAsync();
-            ViewBag.processingTypes = await _repoDropdownData.GetProcessingTypesAsync();
+            ViewBag.Departments = await m_repoDropdownData.GetDepartmentsAsync();
+            ViewBag.problemTypes = await m_repoDropdownData.GetProblemTypesAsync();
+            ViewBag.processingStaffIds = await m_repoDropdownData.GetProcessingStaffIdsAsync();
+            ViewBag.processingTypes = await m_repoDropdownData.GetProcessingTypesAsync();
 
             return View();
         }
@@ -44,11 +44,11 @@ public class HomeController : Controller
 
         if (string.IsNullOrEmpty(depart_code))
         {
-            staffList = await _repoDropdownData.GetStaffsAsync();
+            staffList = await m_repoDropdownData.GetStaffsAsync();
         }
         else
         {
-            staffList = await _repoDropdownData.GetStaffsByDepartmentAsync(depart_code);
+            staffList = await m_repoDropdownData.GetStaffsByDepartmentAsync(depart_code);
         }
 
         return Json(staffList);
@@ -65,7 +65,7 @@ public class HomeController : Controller
     {
         try
         {
-            var results = await _repoMaintainRecord.SearchAsync(model);
+            var results = await m_repoMaintainRecord.SearchAsync(model);
             return Json(ApiResponse.Ok(results));
         }
         catch (Exception ex)
@@ -81,13 +81,13 @@ public class HomeController : Controller
         {
             ViewBag.Mode = "Edit";
 
-            var model = await _repoMaintainRecord.GetByIdAsync(intId);
+            var model = await m_repoMaintainRecord.GetByIdAsync(intId);
             if (model == null) return NotFound();
 
-            ViewBag.Departments = await _repoDropdownData.GetDepartmentsAsync();
-            ViewBag.problemTypes = await _repoDropdownData.GetProblemTypesAsync();
-            ViewBag.processingTypes = await _repoDropdownData.GetProcessingTypesAsync();
-            ViewBag.staffIds = await _repoDropdownData.GetStaffsByDepartmentAsync(model.depart_code);
+            ViewBag.Departments = await m_repoDropdownData.GetDepartmentsAsync();
+            ViewBag.problemTypes = await m_repoDropdownData.GetProblemTypesAsync();
+            ViewBag.processingTypes = await m_repoDropdownData.GetProcessingTypesAsync();
+            ViewBag.staffIds = await m_repoDropdownData.GetStaffsByDepartmentAsync(model.depart_code);
 
             return View("MaintainForm", model);
         }
@@ -116,7 +116,7 @@ public class HomeController : Controller
 
         try
         {
-            await _repoMaintainRecord.UpdateAsync(model);
+            await m_repoMaintainRecord.UpdateAsync(model);
             return Json(ApiResponse.Ok());
         }
         catch (Exception ex)
@@ -131,10 +131,10 @@ public class HomeController : Controller
         try
         {
             ViewBag.Mode = "Create";
-            ViewBag.Departments = await _repoDropdownData.GetDepartmentsAsync();
-            ViewBag.problemTypes = await _repoDropdownData.GetProblemTypesAsync();
-            ViewBag.processingTypes = await _repoDropdownData.GetProcessingTypesAsync();
-            ViewBag.staffIds = await _repoDropdownData.GetStaffsAsync();
+            ViewBag.Departments = await m_repoDropdownData.GetDepartmentsAsync();
+            ViewBag.problemTypes = await m_repoDropdownData.GetProblemTypesAsync();
+            ViewBag.processingTypes = await m_repoDropdownData.GetProcessingTypesAsync();
+            ViewBag.staffIds = await m_repoDropdownData.GetStaffsAsync();
 
             var model = new MaintainRecordViewModel { };
             return View("MaintainForm", model);
@@ -165,7 +165,7 @@ public class HomeController : Controller
         // 新增資料邏輯
         try
         {
-            await _repoMaintainRecord.CreateAsync(model);
+            await m_repoMaintainRecord.CreateAsync(model);
             return Json(ApiResponse.Ok());
         }
         catch (Exception ex)
@@ -184,7 +184,7 @@ public class HomeController : Controller
         try
         {
             int intRecordId = req.record_id ?? 0;
-            int intRows = await _repoMaintainRecord.DeleteAsync(intRecordId);
+            int intRows = await m_repoMaintainRecord.DeleteAsync(intRecordId);
             if (intRows > 0)
                 return Json(ApiResponse.Ok());
             else
