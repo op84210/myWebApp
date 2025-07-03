@@ -1,13 +1,14 @@
 ﻿document.addEventListener('DOMContentLoaded', async function () {
 
+    //搜尋事件
     var searchForm = document.getElementById('searchForm');
     if (searchForm) {
 
-        searchForm.addEventListener('submit',async function (e) {
+        searchForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const formData = new FormData(searchForm);
-            if(!validateForm(formData)) return;
+            if (!validateForm(formData)) return;
 
             //搜尋並渲染
             await searchAndRender(formData);
@@ -23,14 +24,19 @@
             });
         });
     }
-    
+
     // 新增按鈕事件
     var addBtn = document.getElementById('addBtn');
     if (addBtn) {
         addBtn.addEventListener('click', function () {
-            window.location.href = '/Home/Create'; 
+            window.location.href = '/Home/Create';
         });
     }
+
+    //依據選取的單位列出人員
+    document.getElementById('depart_code').addEventListener('change', async function () {
+        await getStaffsByDepartment(this.value, 'processing_staff_id');
+    });
 
 });
 
@@ -74,7 +80,7 @@ async function searchAndRender(formData) {
             method: 'POST',
             body: formData
         });
-      
+
         if (!res.ok) throw new Error('查詢失敗');
 
         const response = await res.json();

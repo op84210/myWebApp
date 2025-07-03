@@ -13,7 +13,7 @@ public class HomeController : Controller
     private readonly IMaintainRecordRepository _repoMaintainRecord;
     private readonly IDropdownDataRepository _repoDropdownData;
 
-    public HomeController(ILogger<HomeController> logger,  IMaintainRecordRepository repoMaintainRecord,    IDropdownDataRepository repoDropdownData)
+    public HomeController(ILogger<HomeController> logger, IMaintainRecordRepository repoMaintainRecord, IDropdownDataRepository repoDropdownData)
     {
         _logger = logger;
         _repoMaintainRecord = repoMaintainRecord;
@@ -35,6 +35,23 @@ public class HomeController : Controller
         {
             return Content("連線失敗：" + ex.Message);
         }
+    }
+
+    [HttpGet("/Home/dropdown/staffs")]
+    public async Task<IActionResult> GetStaffsByDepartment(string depart_code)
+    {
+        object staffList;
+
+        if (string.IsNullOrEmpty(depart_code))
+        {
+            staffList = await _repoDropdownData.GetStaffsAsync();
+        }
+        else
+        {
+            staffList = await _repoDropdownData.GetStaffsByDepartmentAsync(depart_code);
+        }
+
+        return Json(staffList);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -63,13 +80,14 @@ public class HomeController : Controller
         try
         {
             ViewBag.Mode = "Edit";
-            ViewBag.Departments = await _repoDropdownData.GetDepartmentsAsync();
-            ViewBag.problemTypes = await _repoDropdownData.GetProblemTypesAsync();
-            ViewBag.processingTypes = await _repoDropdownData.GetProcessingTypesAsync();
-            ViewBag.staffIds = await _repoDropdownData.GetStaffsAsync();
 
             var model = await _repoMaintainRecord.GetByIdAsync(id);
             if (model == null) return NotFound();
+
+            ViewBag.Departments = await _repoDropdownData.GetDepartmentsAsync();
+            ViewBag.problemTypes = await _repoDropdownData.GetProblemTypesAsync();
+            ViewBag.processingTypes = await _repoDropdownData.GetProcessingTypesAsync();
+            ViewBag.staffIds = await _repoDropdownData.GetStaffsByDepartmentAsync(model.depart_code);
 
             return View("MaintainForm", model);
         }
@@ -78,12 +96,12 @@ public class HomeController : Controller
             return Content("查詢失敗：" + ex.Message);
         }
     }
-   
+
     // 編輯存檔
     [HttpPost]
     public async Task<IActionResult> Edit(MaintainRecordViewModel model)
     {
-       //更新人員, 日期寫死
+        //更新人員, 日期寫死
         model.update_user_id = 520;
         model.update_date = DateTime.Now;
         // 重新驗證 Model
@@ -106,7 +124,7 @@ public class HomeController : Controller
             return Json(ApiResponse.Fail("編輯失敗", new[] { "編輯失敗：" + ex.Message }));
         }
     }
-    
+
     [HttpGet]
     public async Task<IActionResult> Create()
     {
@@ -152,7 +170,7 @@ public class HomeController : Controller
         }
         catch (Exception ex)
         {
-            return Json(ApiResponse.Fail("新增失敗",  new[] { "新增失敗：" + ex.Message } ));
+            return Json(ApiResponse.Fail("新增失敗", new[] { "新增失敗：" + ex.Message }));
         }
     }
 
@@ -177,5 +195,5 @@ public class HomeController : Controller
             return Json(ApiResponse.Fail("刪除失敗：" + ex.Message));
         }
     }
-   
+
 }

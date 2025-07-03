@@ -64,3 +64,23 @@ function showErrors(message) {
         alert(message);
     }
 }
+
+
+//依據選取的單位列出人員
+async function getStaffsByDepartment(departCode, staffSelectId) {
+
+    const staffSelect = document.getElementById(staffSelectId);
+    staffSelect.innerHTML = '<option value="">載入中...</option>';
+
+    try {
+        const res = await fetch(`/Home/dropdown/staffs?depart_code=${encodeURIComponent(departCode)}`);
+        const data = await res.json();
+        staffSelect.innerHTML = '<option value="">請選擇</option>';
+        data.forEach(item => {
+            staffSelect.innerHTML += `<option value="${item.Value}">${item.Text}</option>`;
+        });
+    } catch (err) {
+        staffSelect.innerHTML = '<option value="">載入失敗</option>';
+    }
+
+}

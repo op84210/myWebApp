@@ -9,7 +9,29 @@ public class DropdownDataRepository : IDropdownDataRepository
         _connStr = config.GetConnectionString("DefaultConnection") 
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
     }
-
+    public async Task<List<SelectListItem>> GetStaffsByDepartmentAsync(string depart_code)
+    {
+        var list = new List<SelectListItem>();
+        using (var conn = new SqlConnection(_connStr))
+        {
+            await conn.OpenAsync();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"SELECT staff_id, staff_name FROM ism_staff WHERE depart_code = @depart_code ORDER BY staff_name";
+            cmd.Parameters.AddWithValue("@depart_code", depart_code);
+            using (var reader = await cmd.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    list.Add(new SelectListItem
+                    {
+                        Value = reader["staff_id"].ToString(),
+                        Text = reader["staff_name"].ToString()
+                    });
+                }
+            }
+        }
+        return list;
+    }
     public async Task<List<SelectListItem>> GetDepartmentsAsync()
     {
         var list = new List<SelectListItem>();

@@ -34,6 +34,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
+    //依據選取的單位列出人員
+    document.getElementById('depart_code').addEventListener('change', async function () {
+        await getStaffsByDepartment(this.value, 'staff_id');
+    });
+
 });
 
 function validateForm(formData) {
@@ -104,7 +109,7 @@ function validateForm(formData) {
 
 //編輯
 async function edit(formData) {
-   try {
+    try {
         const res = await fetch('/Home/Edit', {
             method: 'POST',
             body: formData

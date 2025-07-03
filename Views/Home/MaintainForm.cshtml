@@ -53,6 +53,7 @@
                 <th>使用單位</th>
                 <td>
                     <select class="form-control form-select" id="depart_code" name="depart_code">
+                        <option value="">請選擇</option>
                         @foreach (var item in ViewBag.Departments as List<SelectListItem>)
                         {
                             if (item.Value == Model.depart_code)
@@ -69,6 +70,7 @@
                 <th>使用者</th>
                 <td>
                     <select class="form-control form-select" id="staff_id" name="staff_id">
+                        <option value="">請選擇</option>
                         @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
                         {
                             if (item.Value == (Model.staff_id?.ToString() ?? ""))
@@ -87,6 +89,7 @@
                 <th>問題類別</th>
                 <td>
                     <select class="form-control form-select" id="problem_type" name="problem_type">
+                        <option value="">請選擇</option>
                         @foreach (var item in ViewBag.problemTypes as List<SelectListItem>)
                         {
                             if (item.Value == Model.problem_type)
@@ -109,6 +112,7 @@
                 <th>記錄人員</th>
                 <td colspan="3">
                     <select class="form-control form-select" id="record_staff_id" name="record_staff_id">
+                        <option value="">請選擇</option>
                         @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
                         {
                             if (item.Value ==  (Model.record_staff_id?.ToString() ?? ""))
@@ -133,6 +137,7 @@
                 <th>處理人員</th>
                 <td colspan="3">
                     <select class="form-control form-select" id="processing_staff_id" name="processing_staff_id">
+                        <option value="">請選擇</option>
                         @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
                         {
                             if (item.Value == (Model.processing_staff_id?.ToString() ?? ""))
