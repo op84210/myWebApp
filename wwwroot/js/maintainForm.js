@@ -102,22 +102,6 @@ function validateForm(formData) {
     return true;
 }
 
-function mergeDateAndTime(dateStr, timeStr) {
-
-    if (dateStr && timeStr) {
-        // 轉西元年月日
-        const adDate = rocToAD(dateStr);
-
-        const hour = timeStr.substring(0, 2);
-        const minute = timeStr.substring(2, 4);
-
-        const dateTimeStr = `${adDate}T${hour}:${minute}`; // ISO格式
-        return dateTimeStr;
-    }
-
-    return null;
-}
-
 //編輯
 async function edit(formData) {
    try {
@@ -133,6 +117,7 @@ async function edit(formData) {
         }
 
         alert('編輯成功');
+        window.location.href = '/Home/Index'; // 自動導回主頁
 
     } catch (err) {
         alert('編輯失敗');
@@ -154,6 +139,7 @@ async function create(formData) {
         }
 
         alert('儲存成功');
+        window.location.href = '/Home/Index'; // 自動導回主頁
 
     } catch (err) {
         alert('儲存失敗');
@@ -176,12 +162,9 @@ async function deleteData(record_id) {
         }
 
         alert('刪除成功');
+        window.location.href = '/Home/Index'; // 自動導回主頁
 
     } catch (err) {
         alert('刪除失敗');
     }
-}
-
-function showErrors(message) {
-    alert(message.join('\n'));
 }

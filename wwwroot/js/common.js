@@ -28,3 +28,39 @@ function rocToAD(rocStr) {
     return `${year}-${month}-${day}`;
 }
 
+function mergeDateAndTime(dateStr, timeStr) {
+
+    if (dateStr && timeStr) {
+        // 轉西元年月日
+        const adDate = rocToAD(dateStr);
+
+        const hour = timeStr.substring(0, 2);
+        const minute = timeStr.substring(2, 4);
+
+        const dateTimeStr = `${adDate}T${hour}:${minute}`; // ISO格式
+        return dateTimeStr;
+    }
+
+    return null;
+}
+
+function showErrors(message) {
+    if (!message) {
+        alert('發生未知錯誤');
+        return;
+    }
+    if (Array.isArray(message)) {
+        alert(message.join('\n'));
+    } else if (typeof message === 'object') {
+        // 嘗試抓取常見錯誤屬性
+        if (message.errors && Array.isArray(message.errors)) {
+            alert(message.errors.join('\n'));
+        } else if (message.message) {
+            alert(message.message);
+        } else {
+            alert(JSON.stringify(message));
+        }
+    } else {
+        alert(message);
+    }
+}

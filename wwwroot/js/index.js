@@ -74,31 +74,39 @@ async function searchAndRender(formData) {
             method: 'POST',
             body: formData
         });
+      
         if (!res.ok) throw new Error('查詢失敗');
-        const data = await res.json();
+
+        const response = await res.json();
+        if (!response.success) throw new Error(response.message);
 
         let html = '';
+        let data = response.data || [];
+
         if (data.length === 0) {
             html = '<div>查無資料</div>';
         } else {
             html = data.map(row => `
-                <tr>
-                    <td>${row.record_id || ''}</td>
-                    <td>${toTaiwanDate(row.apply_date, "R/MM/dd HH:mm") || ''}</td>
-                    <td>${row.depart_name || ''}</td>
-                    <td>${row.staff_name || ''}</td>
-                    <td>${row.problem_type || ''}</td>
-                    <td>${row.processing_type || ''}</td>
-                    <td>${row.processing_staff_name || ''}</td>
-                    <td>${toTaiwanDate(row.completion_date, "R/MM/dd HH:mm") || ''}</td>
-                    <td><button class="btn btn-secondary edit_btn" data-id="${row.record_id}">編輯</button></td>
-                </tr>
-            `).join('');
+                    <tr>
+                        <td>${row.record_id || ''}</td>
+                        <td>${toTaiwanDate(row.apply_date, "R/MM/dd HH:mm") || ''}</td>
+                        <td>${row.depart_name || ''}</td>
+                        <td>${row.staff_name || ''}</td>
+                        <td>${row.problem_type || ''}</td>
+                        <td>${row.processing_type || ''}</td>
+                        <td>${row.processing_staff_name || ''}</td>
+                        <td>${toTaiwanDate(row.completion_date, "R/MM/dd HH:mm") || ''}</td>
+                        <td><button class="btn btn-secondary edit_btn" data-id="${row.record_id}">編輯</button></td>
+                    </tr>
+                `).join('');
             html = '<table class="table table-bordered"><thead><tr>' +
                 '<th>序號</th><th>申報日期</th><th>使用單位</th><th>使用者</th><th>問題類別</th><th>處理類別</th><th>處理人員</th><th>完成日期</th><th>編輯</th>' +
                 '</tr></thead><tbody>' + html + '</tbody></table>';
         }
+
         document.getElementById('searchResults').innerHTML = html;
+
+
     } catch (err) {
         document.getElementById('searchResults').innerHTML = '<div class="text-danger">查詢失敗：' + err + '</div>';
     }
