@@ -174,8 +174,8 @@
                         int hours = totalMinutes / 60;
                         int minutes = totalMinutes % 60;
                     }
-                    <input type="text" class="form-control" id="hours" value="@hours">小時
-                    <input type="text" class="form-control" id="minutes" value="@minutes">分鐘
+                    <input type="text" class="form-control" id="hours" name="hours" value="@hours">小時
+                    <input type="text" class="form-control" id="minutes" name="minutes" value="@minutes">分鐘
                 </td>
             </tr>
             <tr>
@@ -198,6 +198,10 @@
     </table>
     <div class="text-end">
         <button type="submit" class="btn btn-primary">儲存</button>
+        @if (Model.record_id != null && Model.record_id > 0)
+        {
+            <button type="button" class="btn btn-danger ms-2" id="deleteBtn">刪除</button>
+        }
     </div>
 </form>
     

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using myWebApp.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Diagnostics.CodeAnalysis;
 
 namespace myWebApp.Controllers;
 
@@ -119,11 +120,11 @@ public class HomeController : Controller
                             // 根據你的資料表欄位調整
                             record_id = (int)reader["record_id"],//序號
                             apply_date = (DateTime)reader["apply_date"],//申報日期
-                            depart_name = (String)reader["depart_name"],//使用單位
-                            staff_name = (String)reader["staff_name"],//使用者
-                            problem_type = (String)reader["problem_type"],//問題類別
-                            processing_type = (String)reader["processing_type"],//處理類別
-                            processing_staff_name = (String)reader["processing_staff_name"],//處理人員
+                            depart_name = reader["depart_name"].ToString(),//使用單位
+                            staff_name = reader["staff_name"].ToString(),//使用者
+                            problem_type = reader["problem_type"].ToString(),//問題類別
+                            processing_type = reader["processing_type"].ToString(),//處理類別
+                            processing_staff_name = reader["processing_staff_name"].ToString(),//處理人員
                             completion_date = (DateTime)reader["completion_date"]//完成日期
                         });
                     }
@@ -207,15 +208,83 @@ public class HomeController : Controller
     {
         Console.WriteLine($"[Edit-POST] model={System.Text.Json.JsonSerializer.Serialize(model)}，時間：{DateTime.Now}");
 
-        if (ModelState.IsValid)
+       //更新人員, 日期寫死
+        model.update_user_id = 520;
+        model.update_date = DateTime.Now;
+        // 重新驗證 Model
+        ModelState.Clear();
+        TryValidateModel(model);
+
+        if (!ModelState.IsValid)
         {
-            // 更新資料邏輯
-            // ...
-            return RedirectToAction("Index");
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            return Json(new { success = false, errors });
         }
-        ViewBag.Mode = "Edit";
-        // ...下拉選單資料...
-        return View("MaintainForm", model);
+
+        // 編輯資料邏輯
+        try
+        {
+            var connStr = GetConnectionString();
+            using (var conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    UPDATE ism_maintain_record SET
+                        apply_date = @apply_date,
+                        serial_no = @serial_no,
+                        depart_code = @depart_code,
+                        staff_id = @staff_id,
+                        tel = @tel,
+                        problem_type = @problem_type,
+                        record_staff_id = @record_staff_id,
+                        processing_staff_id = @processing_staff_id,
+                        processing_type = @processing_type,
+                        description = @description,
+                        solution = @solution,
+                        called_firm = @called_firm,
+                        completion_date = @completion_date,
+                        processing_minutes = @processing_minutes,
+                        update_user_id = @update_user_id,
+                        update_date = @update_date,
+                        satisfaction = @satisfaction,
+                        recommendation = @recommendation,
+                        satisfaction_update_user_id = @satisfaction_update_user_id,
+                        satisfaction_update_date = @satisfaction_update_date
+                    WHERE record_id = @record_id
+                ";
+
+                cmd.Parameters.AddWithValue("@apply_date", (object?)model.apply_date ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@serial_no", (object?)model.serial_no ?? "");
+                cmd.Parameters.AddWithValue("@depart_code", (object?)model.depart_code ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@staff_id", (object?)model.staff_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@tel", (object?)model.tel ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@problem_type", (object?)model.problem_type ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@record_staff_id", (object?)model.record_staff_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@processing_staff_id", (object?)model.processing_staff_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@processing_type", (object?)model.processing_type ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@description", (object?)model.description ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@solution", (object?)model.solution ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@called_firm", (object?)model.called_firm ?? "");
+                cmd.Parameters.AddWithValue("@completion_date", (object?)model.completion_date ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@processing_minutes", (object?)model.processing_minutes ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@update_user_id", (object?)model.update_user_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@update_date", (object?)model.update_date ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@satisfaction", (object?)model.satisfaction ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@recommendation", (object?)model.recommendation ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@satisfaction_update_user_id", (object?)model.satisfaction_update_user_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@satisfaction_update_date", (object?)model.satisfaction_update_date ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@record_id", (object?)model.record_id ?? DBNull.Value);
+
+                cmd.ExecuteNonQuery();
+            }
+
+            return Json(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, errors = new[] { "編輯失敗：" + ex.Message } });
+        }
     }
     
     [HttpGet]
@@ -250,17 +319,96 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult Create(MaintainRecordViewModel model)
     {
-        Console.WriteLine($"[Create-POST] model={System.Text.Json.JsonSerializer.Serialize(model)}，時間：{DateTime.Now}");
+        //Console.WriteLine($"[Create-POST] model={System.Text.Json.JsonSerializer.Serialize(model)}，時間：{DateTime.Now}");
+        Console.WriteLine($"[Create-POST] processing_minutes={model.processing_minutes}，時間：{DateTime.Now}");
 
-        if (ModelState.IsValid)
+        //更新人員, 日期寫死
+        model.update_user_id = 520;
+        model.update_date = DateTime.Now;
+        // 重新驗證 Model
+        ModelState.Clear();
+        TryValidateModel(model);
+
+        if (!ModelState.IsValid)
         {
-            // 新增資料邏輯
-            // ...
-            return RedirectToAction("Index");
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            return Json(new { success = false, errors });
         }
-        ViewBag.Mode = "Create";
-        // ...下拉選單資料...
-        return View("MaintainForm", model);
+
+        // 新增資料邏輯
+        try
+        {
+            var connStr = GetConnectionString();
+            using (var conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    INSERT INTO ism_maintain_record
+                    (apply_date, serial_no, depart_code, staff_id, tel, problem_type, record_staff_id, processing_staff_id, processing_type, description, solution, called_firm, completion_date, processing_minutes, update_user_id, update_date, satisfaction, recommendation, satisfaction_update_user_id, satisfaction_update_date)
+                    VALUES
+                    (@apply_date, @serial_no, @depart_code, @staff_id, @tel, @problem_type, @record_staff_id, @processing_staff_id, @processing_type, @description, @solution, @called_firm, @completion_date, @processing_minutes, @update_user_id, @update_date, @satisfaction, @recommendation, @satisfaction_update_user_id, @satisfaction_update_date)
+                ";
+
+                cmd.Parameters.AddWithValue("@apply_date", (object?)model.apply_date ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@serial_no", (object?)model.serial_no ?? "");
+                cmd.Parameters.AddWithValue("@depart_code", (object?)model.depart_code ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@staff_id", (object?)model.staff_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@tel", (object?)model.tel ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@problem_type", (object?)model.problem_type ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@record_staff_id", (object?)model.record_staff_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@processing_staff_id", (object?)model.processing_staff_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@processing_type", (object?)model.processing_type ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@description", (object?)model.description ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@solution", (object?)model.solution ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@called_firm", (object?)model.called_firm ?? "");
+                cmd.Parameters.AddWithValue("@completion_date", (object?)model.completion_date ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@processing_minutes", (object?)model.processing_minutes ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@update_user_id", (object?)model.update_user_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@update_date", (object?)model.update_date ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@satisfaction", (object?)model.satisfaction ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@recommendation", (object?)model.recommendation ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@satisfaction_update_user_id", (object?)model.satisfaction_update_user_id ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@satisfaction_update_date", (object?)model.satisfaction_update_date ?? DBNull.Value);
+
+                cmd.ExecuteNonQuery();
+            }
+
+            return Json(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, errors = new[] { "新增失敗：" + ex.Message } });
+        }
+    }
+
+    //刪除
+    [HttpPost]
+    public IActionResult Delete([FromBody] DeleteRequest req)
+    {
+        if (req == null || req.record_id == null)
+            return Json(new { success = false, message = "缺少刪除參數" });
+
+        try
+        {
+            var connStr = GetConnectionString();
+            using (var conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = "DELETE FROM ism_maintain_record WHERE record_id = @record_id";
+                cmd.Parameters.AddWithValue("@record_id", req.record_id);
+                int rows = cmd.ExecuteNonQuery();
+                if (rows > 0)
+                    return Json(new { success = true });
+                else
+                    return Json(new { success = false, message = "找不到資料或已刪除" });
+            }
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "刪除失敗：" + ex.Message });
+        }
     }
 
     /// <summary>
