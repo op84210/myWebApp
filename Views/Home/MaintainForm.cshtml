@@ -54,15 +54,21 @@
                 <td>
                     <select class="form-control form-select" id="depart_code" name="depart_code">
                         <option value="">請選擇</option>
-                        @foreach (var item in ViewBag.Departments as List<SelectListItem>)
+                        @{
+                            var departments = ViewBag.Departments as List<SelectListItem>;
+                        }
+                        @if (departments != null)
                         {
-                            if (item.Value == Model.depart_code)
+                            foreach (var item in departments)
                             {
-                                <option value="@item.Value" selected>@item.Text</option>
-                            }
-                            else
-                            {
-                                <option value="@item.Value">@item.Text</option>
+                                if (item.Value == Model.depart_code)
+                                {
+                                    <option value="@item.Value" selected>@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
                             }
                         }
                     </select>
@@ -71,15 +77,22 @@
                 <td>
                     <select class="form-control form-select" id="staff_id" name="staff_id">
                         <option value="">請選擇</option>
-                        @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
+                        @{
+                            var staffIdsByDepartment = ViewBag.staffIdsByDepartment as List<SelectListItem>;
+                            var staffIds = ViewBag.staffIds as List<SelectListItem>;
+                        }
+                        @if (staffIdsByDepartment != null)
                         {
-                            if (item.Value == (Model.staff_id?.ToString() ?? ""))
+                            foreach (var item in staffIdsByDepartment)
                             {
-                                <option value="@item.Value" selected>@item.Text</option>
-                            }
-                            else
-                            {
-                                <option value="@item.Value">@item.Text</option>
+                                if (item.Value == (Model.staff_id?.ToString() ?? ""))
+                                {
+                                    <option value="@item.Value" selected>@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
                             }
                         }
                     </select>
@@ -90,15 +103,21 @@
                 <td>
                     <select class="form-control form-select" id="problem_type" name="problem_type">
                         <option value="">請選擇</option>
-                        @foreach (var item in ViewBag.problemTypes as List<SelectListItem>)
+                        @{
+                            var problemTypes = ViewBag.problemTypes as List<SelectListItem>;
+                        }
+                        @if (problemTypes != null)
                         {
-                            if (item.Value == Model.problem_type)
+                            foreach (var item in problemTypes)
                             {
-                                <option value="@item.Value" selected>@item.Text</option>
-                            }
-                            else
-                            {
-                                <option value="@item.Value">@item.Text</option>
+                                if (item.Value == Model.problem_type)
+                                {
+                                    <option value="@item.Value" selected>@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
                             }
                         }
                     </select>
@@ -113,15 +132,18 @@
                 <td colspan="3">
                     <select class="form-control form-select" id="record_staff_id" name="record_staff_id">
                         <option value="">請選擇</option>
-                        @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
+                        @if (staffIds != null)
                         {
-                            if (item.Value ==  (Model.record_staff_id?.ToString() ?? ""))
+                            foreach (var item in staffIds)
                             {
-                                <option value="@item.Value" selected>@item.Text</option>
-                            }
-                            else
-                            {
-                                <option value="@item.Value">@item.Text</option>
+                                if (item.Value ==  (Model.record_staff_id?.ToString() ?? ""))
+                                {
+                                    <option value="@item.Value" selected>@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
                             }
                         }
                     </select>
@@ -138,15 +160,18 @@
                 <td colspan="3">
                     <select class="form-control form-select" id="processing_staff_id" name="processing_staff_id">
                         <option value="">請選擇</option>
-                        @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
+                        @if (staffIds != null)
                         {
-                            if (item.Value == (Model.processing_staff_id?.ToString() ?? ""))
+                            foreach (var item in staffIds)
                             {
-                                <option value="@item.Value" selected>@item.Text</option>
-                            }
-                            else
-                            {
-                                <option value="@item.Value">@item.Text</option>
+                                if (item.Value == (Model.processing_staff_id?.ToString() ?? ""))
+                                {
+                                    <option value="@item.Value" selected>@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
                             }
                         }
                     </select>
@@ -155,15 +180,21 @@
             <tr>
                 <th>處理類別</th>
                 <td colspan="3">    
-                    @foreach (var item in ViewBag.processingTypes as List<SelectListItem>)
+                    @{
+                        var processingTypes = ViewBag.processingTypes as List<SelectListItem>;
+                    }
+                    @if (processingTypes != null)
                     {
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" 
-                                name="processing_type" id="processing_type_@item.Value" 
-                                value="@item.Value" 
-                                @(item.Value == Model.processing_type ? "checked" : "")>
-                            <label class="form-check-label me-3" for="processing_type_@item.Value">@item.Text</label>
+                        foreach (var item in processingTypes)
+                        {
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" 
+                                    name="processing_type" id="processing_type_@item.Value" 
+                                    value="@item.Value" 
+                                    @(item.Value == Model.processing_type ? "checked" : "")>
+                                <label class="form-check-label me-3" for="processing_type_@item.Value">@item.Text</label>
                             </div>
+                        }
                     }
                     <input type="text" class="form-control" id="called_firm" name="called_firm" value="@Model.called_firm">
                 </td>
@@ -194,11 +225,16 @@
             <tr>
                 <th>更新人員</th>
                 <td>
-                    @foreach (var item in ViewBag.staffIds as List<SelectListItem>)
-                    {
-                        if (item.Value == (Model.update_user_id?.ToString() ?? ""))
+                    @{
+                        if (staffIds != null)
                         {
-                            @item.Text
+                            foreach (var item in staffIds)
+                            {
+                                if (item.Value == (Model.update_user_id?.ToString() ?? ""))
+                                {
+                                    @item.Text
+                                }
+                            }
                         }
                     }
                 </td>

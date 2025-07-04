@@ -113,7 +113,8 @@ public class HomeController : Controller
             ViewBag.Departments = await m_repoDropdownData.GetDepartmentsAsync();
             ViewBag.problemTypes = await m_repoDropdownData.GetProblemTypesAsync();
             ViewBag.processingTypes = await m_repoDropdownData.GetProcessingTypesAsync();
-            ViewBag.staffIds = await m_repoDropdownData.GetStaffsByDepartmentAsync(model.depart_code ?? string.Empty);
+            ViewBag.staffIdsByDepartment = await m_repoDropdownData.GetStaffsByDepartmentAsync(model.depart_code ?? string.Empty);
+            ViewBag.staffIds = await m_repoDropdownData.GetStaffsAsync();
 
             return View("MaintainForm", model);
         }
