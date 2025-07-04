@@ -153,26 +153,26 @@ async function fetchSearchResult(formData) {
 
 // 渲染搜尋結果表格
 function renderSearchTable(data) {
-    
-    let html = data.map(row => `
-        <tr>
-            <td>${row.record_id || ''}</td>
-            <td>${toTaiwanDate(row.apply_date, "R/MM/dd HH:mm") || ''}</td>
-            <td>${row.depart_name || ''}</td>
-            <td>${row.staff_name || ''}</td>
-            <td>${row.problem_type || ''}</td>
-            <td>${row.processing_type || ''}</td>
-            <td>${row.processing_staff_name || ''}</td>
-            <td>${toTaiwanDate(row.completion_date, "R/MM/dd HH:mm") || ''}</td>
-            <td><button class="btn btn-secondary edit_btn" data-id="${row.record_id}">編輯</button></td>
-        </tr>
-    `).join('');
-
+    let html = data.map(row => renderTableRow(row)).join('');
     html = '<table class="table table-bordered"><thead><tr>' +
         '<th>序號</th><th>申報日期</th><th>使用單位</th><th>使用者</th><th>問題類別</th><th>處理類別</th><th>處理人員</th><th>完成日期</th><th>編輯</th>' +
         '</tr></thead><tbody>' + html + '</tbody></table>';
-
     document.getElementById('searchResults').innerHTML = html;
+}
+
+// 渲染單行資料
+function renderTableRow(row) {
+    return `<tr>
+        <td>${row.record_id || ''}</td>
+        <td>${toTaiwanDate(row.apply_date, "R/MM/dd HH:mm") || ''}</td>
+        <td>${row.depart_name || ''}</td>
+        <td>${row.staff_name || ''}</td>
+        <td>${row.problem_type || ''}</td>
+        <td>${row.processing_type || ''}</td>
+        <td>${row.processing_staff_name || ''}</td>
+        <td>${toTaiwanDate(row.completion_date, "R/MM/dd HH:mm") || ''}</td>
+        <td><button class="btn btn-secondary edit_btn" data-id="${row.record_id}">編輯</button></td>
+    </tr>`;
 }
 
 // 渲染分頁
@@ -191,19 +191,15 @@ function renderPagination(page, totalCount) {
 
 //產生分頁 HTML
 function buildPaginationHtml(page, totalPages) {
-
+    
     let html = '';
 
     // 上一頁
-    html += `<li class="page-item${page === 1 ? ' disabled' : ''}">
-        <a class="page-link" href="#" data-page="${page - 1}">«</a>
-    </li>`;
+    html += renderPageButton(page - 1, '«', false, page === 1, 'prev');
 
     // 當前頁碼在1到總頁數之間
     let start = Math.max(1, page - 2);
     let end = Math.min(totalPages, page + 2);
-
-    // 如果當前頁在前2頁或後2頁，調整起始和結束頁碼
     if (end - start < 4) {
         if (start === 1) {
             end = Math.min(totalPages, start + 4);
@@ -214,30 +210,35 @@ function buildPaginationHtml(page, totalPages) {
 
     // 如果起始頁大於1，顯示第一頁和省略號
     if (start > 1) {
-        html += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
-        // 如果起始頁大於2，顯示省略號
-        if (start > 2) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        html += renderPageButton(1, '1', false, false);
+        if (start > 2) html += renderPageButton(null, '...', false, true, 'ellipsis');
     }
 
     // 中間頁碼
     for (let i = start; i <= end; i++) {
-        html += `<li class="page-item${i === page ? ' active' : ''}">
-            <a class="page-link" href="#" data-page="${i}">${i}</a>
-        </li>`;
+        html += renderPageButton(i, i, i === page, false);
     }
 
     // 如果結束頁小於總頁數，顯示最後一頁和省略號
     if (end < totalPages) {
-        if (end < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-        html += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+        if (end < totalPages - 1) html += renderPageButton(null, '...', false, true, 'ellipsis');
+        html += renderPageButton(totalPages, totalPages, false, false);
     }
 
     // 下一頁
-    html += `<li class="page-item${page === totalPages ? ' disabled' : ''}">
-        <a class="page-link" href="#" data-page="${page + 1}">»</a>
-    </li>`;
-
+    html += renderPageButton(page + 1, '»', false, page === totalPages, 'next');
     return html;
+}
+
+// 渲染單個分頁按鈕
+function renderPageButton(page, text, isActive, isDisabled, extraClass = '') {
+    // 若是省略號，無 data-page
+    if (extraClass === 'ellipsis') {
+        return `<li class="page-item disabled ${extraClass}"><span class="page-link">${text}</span></li>`;
+    }
+    return `<li class="page-item${isActive ? ' active' : ''}${isDisabled ? ' disabled' : ''} ${extraClass}">
+        <a class="page-link" href="#" data-page="${page}">${text}</a>
+    </li>`;
 }
 
 // 綁定分頁點擊事件
