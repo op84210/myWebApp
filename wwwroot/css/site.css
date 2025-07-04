@@ -24,7 +24,7 @@ body {
 .search-container {
     display: flex;
     flex-direction: column;
-    height: 80vh;
+    height: 89vh;
 }
 .search-top {
     flex: 0 0 auto;
