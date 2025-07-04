@@ -12,7 +12,7 @@ public class MaintainRecordRepository : IMaintainRecordRepository
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
         _db = db;
     }
-    public async Task<(List<SearchResultViewModel>, int)> SearchPagedAsync(SearchConditionViewModel model, int page, int pageSize)
+    public async Task<(List<SearchResult>, int)> SearchPagedAsync(SearchCondition model, int page, int pageSize)
     {
         var query = _db.MaintainRecords
             .AsNoTracking()
@@ -37,7 +37,7 @@ public class MaintainRecordRepository : IMaintainRecordRepository
             query = query.Where(x => x.completion_date <= model.CompletionEndDate);
 
         var projected = query
-            .Select(x => new SearchResultViewModel
+            .Select(x => new SearchResult
             {
                 record_id = x.record_id ?? 0,
                 apply_date = x.apply_date ?? DateTime.MinValue,

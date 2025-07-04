@@ -1,4 +1,4 @@
-public class SearchResultViewModel
+public class SearchResult
 {
     public int record_id { get; set; }
     public DateTime? apply_date { get; set; }

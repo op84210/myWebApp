@@ -1,4 +1,4 @@
-public class SearchConditionViewModel
+public class SearchCondition
 {
     public DateTime? ApplyStartDate { get; set; }
     public DateTime? ApplyEndDate { get; set; }

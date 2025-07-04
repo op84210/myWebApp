@@ -87,7 +87,7 @@ public class HomeController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Search([FromForm] SearchConditionViewModel model, int page = 1, int pageSize = 10)
+    public async Task<IActionResult> Search([FromForm] SearchCondition model, int page = 1, int pageSize = 10)
     {
         try
         {
