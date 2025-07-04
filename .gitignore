@@ -8,6 +8,7 @@ obj/
 
 # 忽略 VSCode 設定
 .vscode/
+.vs/
 
 # 忽略 log 檔
 *.log

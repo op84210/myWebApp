@@ -84,3 +84,14 @@ async function getStaffsByDepartment(strDepartCode, strStaffSelectId) {
     }
 
 }
+
+function isValidRocDate(rocStr) {
+    if (!/^[0-9]{7}$/.test(rocStr)) return false;
+    const y = parseInt(rocStr.substring(0,3), 10) + 1911;
+    const m = parseInt(rocStr.substring(3,5), 10);
+    const d = parseInt(rocStr.substring(5,7), 10);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+    // 檢查是否為有效日期
+    const date = new Date(y, m - 1, d);
+    return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+}

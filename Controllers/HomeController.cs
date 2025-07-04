@@ -10,48 +10,13 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> m_logger;
     private readonly IMaintainRecordRepository m_repoMaintainRecord;
     private readonly IDropdownDataRepository m_repoDropdownData;
-    private readonly MyDbContext _db;
 
-    public HomeController(MyDbContext db, ILogger<HomeController> logger, IMaintainRecordRepository repoMaintainRecord, IDropdownDataRepository repoDropdownData)
+    public HomeController(ILogger<HomeController> logger, IMaintainRecordRepository repoMaintainRecord, IDropdownDataRepository repoDropdownData)
     {
-        _db = db;
         m_logger = logger;
         m_repoMaintainRecord = repoMaintainRecord;
         m_repoDropdownData = repoDropdownData;
     }
-
-    [HttpGet("/Home/DbTest")]
-    public IActionResult DbTest()
-    {
-        // 取出前10筆並 Include 關聯
-        var records = _db.MaintainRecords
-            .Include(m => m.Department)
-            .Include(m => m.Staff)
-            .Include(m => m.ProblemTypeCode)
-                .Where(m => m.ProblemTypeCode != null && m.ProblemTypeCode.kind == "QUESTION")
-            .Include(m => m.ProcessingTypeCode)
-                .Where(m => m.ProcessingTypeCode != null && m.ProcessingTypeCode.kind == "PROCESSING")
-            .Include(m => m.ProcessingStaff)
-            .Take(10)
-            .ToList();
-
-        if (records.Count == 0)
-            return Content("查無資料，DbContext 連線成功但資料表無資料");
-
-        var lines = records.Select(r =>
-            $@" record_id: {r.record_id}, 
-                apply_date: {r.apply_date}, 
-                depart_name: {r.Department?.depart_name}, 
-                staff_name: {r.Staff?.staff_name}, 
-                problem_type: {r.ProblemTypeCode?.description }, 
-                processing_type: {r.ProcessingTypeCode?.description }, 
-                processing_staff_name: {r.ProcessingStaff?.staff_name}, 
-                completion_date: {r.completion_date}"
-        );
-
-        return Content(string.Join("\n", lines));
-    }
-
     public async Task<IActionResult> Index()
     {
         try
@@ -91,6 +56,14 @@ public class HomeController : Controller
     {
         try
         {
+            // ApplyEndDate 時間設為 23:59:59
+            if (model.ApplyEndDate.HasValue)
+                model.ApplyEndDate = model.ApplyEndDate.Value.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+
+            // CompletionEndDate 時間設為 23:59:59
+            if (model.CompletionEndDate.HasValue)
+                model.CompletionEndDate= model.CompletionEndDate.Value.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+
             var (results, totalCount) = await m_repoMaintainRecord.SearchPagedAsync(model, page, pageSize);
             return Json(ApiResponse.Ok(new { results = results, totalCount }));
         }

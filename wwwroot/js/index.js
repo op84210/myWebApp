@@ -36,7 +36,6 @@
 });
 
 function validateForm(formData) {
-
     // 取得民國年欄位
     const strApplyStart = document.getElementById('applyStartDate').value.trim();
     const strApplyEnd = document.getElementById('applyEndDate').value.trim();
@@ -52,9 +51,27 @@ function validateForm(formData) {
     ];
 
     for (const field of dateFields) {
-        if (field.value && !/^\d{7}$/.test(field.value)) {
-            alert('請輸入正確的民國年格式（如1130701）');
+        if (field.value && !isValidRocDate(field.value)) {
+            alert('請輸入有效的日期（如1130701）');
             document.getElementById(field.id).focus();
+            return false;
+        }
+    }
+
+    // 申報日期區間檢查
+    if (strApplyStart && strApplyEnd) {
+        if (parseInt(strApplyStart, 10) > parseInt(strApplyEnd, 10)) {
+            alert('申報起始日不能晚於結束日');
+            document.getElementById('applyStartDate').focus();
+            return false;
+        }
+    }
+
+    // 完成日期區間檢查
+    if (strCompletionStart && strCompletionEnd) {
+        if (parseInt(strCompletionStart, 10) > parseInt(strCompletionEnd, 10)) {
+            alert('完成起始日不能晚於結束日');
+            document.getElementById('completionStartDate').focus();
             return false;
         }
     }
@@ -67,6 +84,7 @@ function validateForm(formData) {
 
     return true;
 }
+
 
 const pageSize = 10; // 每頁顯示的記錄數
 //搜尋並渲染

@@ -50,8 +50,8 @@ function validateForm(formData) {
     ];
 
     for (const field of aryDateFields) {
-        if (!field.value || !/^\d{7}$/.test(field.value)) {
-            alert('請輸入正確的民國年格式（如1130701）');
+        if (field.value && !isValidRocDate(field.value)) {
+            alert('請輸入有效的日期（如1130701）');
             document.getElementById(field.id).focus();
             return false;
         }

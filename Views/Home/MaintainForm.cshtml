@@ -22,8 +22,6 @@
     }
 }
 
-
-
 <form id="maintainForm" method="post" data-mode="@ViewBag.Mode">
     <div class="my-3 d-flex justify-content-between">
         <button type="button" class="btn btn-secondary" onclick="window.history.back();">回清單頁</button>
@@ -45,7 +43,7 @@
                 </td>
                 <th>申報日期</th>
                 <td>
-                    <input type="text" class="form-control" id="apply_date_roc" name="apply_date_roc" value="@ToRocDateStr(Model.apply_date)">
+                    <input type="text" class="form-control" id="apply_date_roc" name="apply_date_roc" value="@ToRocDateStr(Model.apply_date)" placeholder="民國年月日 例：1130701" maxlength="7" pattern="\d{7}" title="請輸入7碼數字，如1130701">
                     <input type="text" class="form-control" id="apply_time" name="apply_time" value="@ToTimeStr(Model.apply_date)">
                 </td>
             </tr>
@@ -208,7 +206,7 @@
             <tr>
                 <th>完成日期</th>
                 <td>
-                    <input type="text" class="form-control" id="completion_date_roc" name="completion_date_roc" value="@ToRocDateStr(Model.completion_date)">
+                    <input type="text" class="form-control" id="completion_date_roc" name="completion_date_roc" value="@ToRocDateStr(Model.completion_date)" placeholder="民國年月日 例：1130701" maxlength="7" pattern="\d{7}" title="請輸入7碼數字，如1130701">
                     <input type="text" class="form-control" id="completion_time" name="completion_time" value="@ToTimeStr(Model.completion_date)">
                 </td>
                 <th>處理時間</th>
