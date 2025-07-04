@@ -68,9 +68,14 @@ function validateForm(formData) {
     return true;
 }
 
+const pageSize = 10; // 每頁顯示的記錄數
 //搜尋並渲染
-async function searchAndRender(formData) {
+async function searchAndRender(formData, gotoPage = 1) {
     try {
+
+        formData.set('page', gotoPage);
+        formData.set('pageSize', pageSize);
+
         const res = await fetch('/Home/Search', {
             method: 'POST',
             body: formData
@@ -83,6 +88,7 @@ async function searchAndRender(formData) {
 
         let html = '';
         let data = response.data.results || [];
+        let totalCount = response.data.totalCount || 0;
 
         if (data.length === 0) {
             html = '<div>查無資料</div>';
@@ -107,8 +113,70 @@ async function searchAndRender(formData) {
 
         document.getElementById('searchResults').innerHTML = html;
 
+        renderPagination(gotoPage, totalCount);
 
     } catch (err) {
         document.getElementById('searchResults').innerHTML = '<div class="text-danger">查詢失敗：' + err + '</div>';
     }
+}
+
+function renderPagination(page, totalCount) {
+    const totalPages = Math.ceil(totalCount / pageSize);
+    let html = '';
+
+    if (totalPages <= 1) {
+        $('#pagination').html('');
+        return;
+    }
+
+    // 上一頁
+    html += `<li class="page-item${page === 1 ? ' disabled' : ''}">
+        <a class="page-link" href="#" data-page="${page - 1}">«</a>
+    </li>`;
+
+    // 計算分頁範圍
+    let start = Math.max(1, page - 2);
+    let end = Math.min(totalPages, page + 2);
+    if (end - start < 4) {
+        if (start === 1) {
+            end = Math.min(totalPages, start + 4);
+        } else if (end === totalPages) {
+            start = Math.max(1, end - 4);
+        }
+    }
+
+    if (start > 1) {
+        html += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+        if (start > 2) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+    }
+
+    for (let i = start; i <= end; i++) {
+        html += `<li class="page-item${i === page ? ' active' : ''}">
+            <a class="page-link" href="#" data-page="${i}">${i}</a>
+        </li>`;
+    }
+
+    if (end < totalPages) {
+        if (end < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        html += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+    }
+
+    // 下一頁
+    html += `<li class="page-item${page === totalPages ? ' disabled' : ''}">
+        <a class="page-link" href="#" data-page="${page + 1}">»</a>
+    </li>`;
+
+    $('#pagination').html(html);
+
+    // 綁定點擊事件
+    $('#pagination .page-link').off('click').on('click',async function (e) {
+        e.preventDefault();
+        const gotoPage = parseInt($(this).data('page'));
+        if (!isNaN(gotoPage) && gotoPage >= 1 && gotoPage <= totalPages && gotoPage !== page) {
+            var searchForm = document.getElementById('searchForm');
+            const formData = new FormData(searchForm);
+            if (!validateForm(formData)) return;
+            await searchAndRender(formData, gotoPage);
+        }
+    });
 }

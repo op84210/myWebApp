@@ -15,14 +15,9 @@ public class MaintainRecordRepository : IMaintainRecordRepository
     public async Task<(List<SearchResultViewModel>, int)> SearchPagedAsync(SearchConditionViewModel model, int page, int pageSize)
     {
         var query = _db.MaintainRecords
-            .Include(m => m.Department)
-            .Include(m => m.Staff)
-            .Include(m => m.ProblemTypeCode)
-                .Where(m => m.ProblemTypeCode != null && m.ProblemTypeCode.kind == "QUESTION")
-            .Include(m => m.ProcessingTypeCode)
-                .Where(m => m.ProcessingTypeCode != null && m.ProcessingTypeCode.kind == "PROCESSING")
-            .Include(m => m.ProcessingStaff)
-            .AsQueryable();
+            .AsNoTracking()
+            .Where(x => (x.ProblemTypeCode == null || x.ProblemTypeCode.kind == "QUESTION") &&
+                        (x.ProcessingTypeCode == null || x.ProcessingTypeCode.kind == "PROCESSING"));
 
         if (model.ApplyStartDate != null)
             query = query.Where(x => x.apply_date >= model.ApplyStartDate);
@@ -41,12 +36,7 @@ public class MaintainRecordRepository : IMaintainRecordRepository
         if (model.CompletionEndDate != null)
             query = query.Where(x => x.completion_date <= model.CompletionEndDate);
 
-        int totalCount = await query.CountAsync();
-
-        var data = await query
-            .OrderByDescending(x => x.record_id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
+        var projected = query
             .Select(x => new SearchResultViewModel
             {
                 record_id = x.record_id ?? 0,
@@ -57,7 +47,14 @@ public class MaintainRecordRepository : IMaintainRecordRepository
                 processing_type = x.ProcessingTypeCode != null ? x.ProcessingTypeCode.description : null,
                 processing_staff_name = x.ProcessingStaff != null ? x.ProcessingStaff.staff_name : null,
                 completion_date = x.completion_date ?? DateTime.MinValue
-            })
+            });
+
+        int totalCount = await projected.CountAsync();
+
+        var data = await projected
+            .OrderByDescending(x => x.record_id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         return (data, totalCount);
