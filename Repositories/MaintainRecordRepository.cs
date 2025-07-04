@@ -75,7 +75,7 @@ public class MaintainRecordRepository : IMaintainRecordRepository
         return (results, results.Count);
     }
 
-    public async Task<MaintainRecordViewModel?> GetByIdAsync(int id)
+    public async Task<MaintainRecord?> GetByIdAsync(int id)
     {
         using (var cn = new SqlConnection(m_strConnectionString))
         {
@@ -89,7 +89,7 @@ public class MaintainRecordRepository : IMaintainRecordRepository
             {
                 if (await dr.ReadAsync())
                 {
-                    return new MaintainRecordViewModel
+                    return new MaintainRecord
                     {
                         record_id = dr["record_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["record_id"]),
                         apply_date = dr["apply_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["apply_date"]),
@@ -120,7 +120,7 @@ public class MaintainRecordRepository : IMaintainRecordRepository
         return null;
     }
 
-    public async Task<int> CreateAsync(MaintainRecordViewModel model)
+    public async Task<int> CreateAsync(MaintainRecord model)
     {
         using (var cn = new SqlConnection(m_strConnectionString))
         {
@@ -159,7 +159,7 @@ public class MaintainRecordRepository : IMaintainRecordRepository
         }
     }
 
-    public async Task<int> UpdateAsync(MaintainRecordViewModel model)
+    public async Task<int> UpdateAsync(MaintainRecord model)
     {
         using (var cn = new SqlConnection(m_strConnectionString))
         {

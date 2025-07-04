@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace myWebApp.Models;
 
-public class MaintainRecordViewModel
+public class MaintainRecord
 {
 
     public int? record_id { get; set; }// record_id	int

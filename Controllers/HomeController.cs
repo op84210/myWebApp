@@ -111,7 +111,7 @@ public class HomeController : Controller
 
     // 編輯存檔
     [HttpPost]
-    public async Task<IActionResult> Edit(MaintainRecordViewModel model)
+    public async Task<IActionResult> Edit(MaintainRecord model)
     {
         //更新人員, 日期寫死
         model.update_user_id = 520;
@@ -148,7 +148,7 @@ public class HomeController : Controller
             ViewBag.processingTypes = await m_repoDropdownData.GetProcessingTypesAsync();
             ViewBag.staffIds = await m_repoDropdownData.GetStaffsAsync();
 
-            var model = new MaintainRecordViewModel { };
+            var model = new MaintainRecord { };
             return View("MaintainForm", model);
         }
         catch (Exception ex)
@@ -159,7 +159,7 @@ public class HomeController : Controller
 
     // 新增存檔
     [HttpPost]
-    public async Task<IActionResult> Create(MaintainRecordViewModel model)
+    public async Task<IActionResult> Create(MaintainRecord model)
     {
         //更新人員, 日期寫死
         model.update_user_id = 520;
