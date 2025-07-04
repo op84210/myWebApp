@@ -1,78 +1,66 @@
 using myWebApp.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
 
 public class MaintainRecordRepository : IMaintainRecordRepository
 {
+    private readonly MyDbContext _db;
     private readonly string m_strConnectionString;
-    public MaintainRecordRepository(IConfiguration config)
+    public MaintainRecordRepository(IConfiguration config,MyDbContext db)
     {
-        m_strConnectionString = config.GetConnectionString("DefaultConnection") 
+          m_strConnectionString = config.GetConnectionString("DefaultConnection") 
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        _db = db;
     }
     public async Task<(List<SearchResultViewModel>, int)> SearchPagedAsync(SearchConditionViewModel model, int page, int pageSize)
     {
-        var results = new List<SearchResultViewModel>();
+        var query = _db.MaintainRecords
+            .Include(m => m.Department)
+            .Include(m => m.Staff)
+            .Include(m => m.ProblemTypeCode)
+                .Where(m => m.ProblemTypeCode != null && m.ProblemTypeCode.kind == "QUESTION")
+            .Include(m => m.ProcessingTypeCode)
+                .Where(m => m.ProcessingTypeCode != null && m.ProcessingTypeCode.kind == "PROCESSING")
+            .Include(m => m.ProcessingStaff)
+            .AsQueryable();
 
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
+        if (model.ApplyStartDate != null)
+            query = query.Where(x => x.apply_date >= model.ApplyStartDate);
+        if (model.ApplyEndDate != null)
+            query = query.Where(x => x.apply_date <= model.ApplyEndDate);
+        if (!string.IsNullOrEmpty(model.depart_code))
+            query = query.Where(x => x.depart_code == model.depart_code);
+        if (!string.IsNullOrEmpty(model.problem_type))
+            query = query.Where(x => x.problem_type == model.problem_type);
+        if (model.processing_staff_id != null)
+            query = query.Where(x => x.processing_staff_id == model.processing_staff_id);
+        if (!string.IsNullOrEmpty(model.processing_type))
+            query = query.Where(x => x.processing_type == model.processing_type);
+        if (model.CompletionStartDate != null)
+            query = query.Where(x => x.completion_date >= model.CompletionStartDate);
+        if (model.CompletionEndDate != null)
+            query = query.Where(x => x.completion_date <= model.CompletionEndDate);
 
-            cmd.CommandText = @"
-                SELECT 
-                    A.record_id as record_id,
-                    A.apply_date as apply_date,
-                    B.depart_name as depart_name,
-                    C.staff_name as staff_name,
-                    D.description as problem_type,
-                    E.description as processing_type,
-                    F.staff_name as processing_staff_name,
-                    A.completion_date as completion_date
-                FROM 
-                    ism_maintain_record A LEFT JOIN 
-                    ism_department B ON A.depart_code = B.depart_code LEFT JOIN 
-                    ism_staff C ON A.staff_id = C.staff_id LEFT JOIN 
-                    ism_code D ON A.problem_type = D.code AND D.kind = 'QUESTION' LEFT JOIN 
-                    ism_code E ON A.processing_type = E.code AND E.kind = 'PROCESSING' LEFT JOIN 
-                    ism_staff F ON A.processing_staff_id = F.staff_id
-                WHERE 
-                    (@applyStartDate IS NULL OR A.apply_date >= @applyStartDate) AND 
-                    (@applyEndDate IS NULL OR A.apply_date <= @applyEndDate) AND 
-                    (@completionStartDate IS NULL OR A.completion_date >= @completionStartDate) AND 
-                    (@completionEndDate IS NULL OR A.completion_date <= @completionEndDate) AND 
-                    (@depart_code IS NULL OR A.depart_code = @depart_code) AND 
-                    (@problem_type IS NULL OR A.problem_type = @problem_type) AND 
-                    (@processing_staff_id IS NULL OR A.processing_staff_id = @processing_staff_id) AND 
-                    (@processing_type IS NULL OR A.processing_type = @processing_type)";
+        int totalCount = await query.CountAsync();
 
-            cmd.Parameters.AddWithValue("@applyStartDate", (object?)model.ApplyStartDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@applyEndDate", (object?)model.ApplyEndDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@completionStartDate", (object?)model.CompletionStartDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@completionEndDate", (object?)model.CompletionEndDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@depart_code", (object?)model.depart_code ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@problem_type", (object?)model.problem_type ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@processing_staff_id", (object?)model.processing_staff_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@processing_type", (object?)model.processing_type ?? DBNull.Value);
-
-            using (var dr = await cmd.ExecuteReaderAsync())
+        var data = await query
+            .OrderByDescending(x => x.record_id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => new SearchResultViewModel
             {
-                while (await dr.ReadAsync())
-                {
-                    results.Add(new SearchResultViewModel
-                    {
-                        record_id = (int)dr["record_id"],//序號
-                        apply_date = (DateTime)dr["apply_date"],//申報日期
-                        depart_name = dr["depart_name"].ToString(),//使用單位
-                        staff_name = dr["staff_name"].ToString(),//使用者
-                        problem_type = dr["problem_type"].ToString(),//問題類別
-                        processing_type = dr["processing_type"].ToString(),//處理類別
-                        processing_staff_name = dr["processing_staff_name"].ToString(),//處理人員
-                        completion_date = (DateTime)dr["completion_date"]//完成日期
-                    });
-                }
-            }
-        }
-        return (results, results.Count);
+                record_id = x.record_id ?? 0,
+                apply_date = x.apply_date ?? DateTime.MinValue,
+                depart_name = x.Department != null ? x.Department.depart_name : null,
+                staff_name = x.Staff != null ? x.Staff.staff_name : null,
+                problem_type = x.ProblemTypeCode != null ? x.ProblemTypeCode.description : null,
+                processing_type = x.ProcessingTypeCode != null ? x.ProcessingTypeCode.description : null,
+                processing_staff_name = x.ProcessingStaff != null ? x.ProcessingStaff.staff_name : null,
+                completion_date = x.completion_date ?? DateTime.MinValue
+            })
+            .ToListAsync();
+
+        return (data, totalCount);
     }
 
     public async Task<MaintainRecord?> GetByIdAsync(int id)

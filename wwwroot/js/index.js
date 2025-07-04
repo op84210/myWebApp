@@ -33,11 +33,6 @@
         });
     }
 
-    //依據選取的單位列出人員
-    document.getElementById('depart_code').addEventListener('change', async function () {
-        await getStaffsByDepartment(this.value, 'processing_staff_id');
-    });
-
 });
 
 function validateForm(formData) {

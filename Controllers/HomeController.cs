@@ -1,9 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using myWebApp.Models;
-using Microsoft.Data.SqlClient;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace myWebApp.Controllers;
 
@@ -25,11 +23,33 @@ public class HomeController : Controller
     [HttpGet("/Home/DbTest")]
     public IActionResult DbTest()
     {
-        // 取出 ism_maintain_record 第一筆
-        var first = _db.MaintainRecords.FirstOrDefault();
-        if (first == null)
+        // 取出前10筆並 Include 關聯
+        var records = _db.MaintainRecords
+            .Include(m => m.Department)
+            .Include(m => m.Staff)
+            .Include(m => m.ProblemTypeCode)
+                .Where(m => m.ProblemTypeCode != null && m.ProblemTypeCode.kind == "QUESTION")
+            .Include(m => m.ProcessingTypeCode)
+                .Where(m => m.ProcessingTypeCode != null && m.ProcessingTypeCode.kind == "PROCESSING")
+            .Include(m => m.ProcessingStaff)
+            .Take(10)
+            .ToList();
+
+        if (records.Count == 0)
             return Content("查無資料，DbContext 連線成功但資料表無資料");
-        return Content($"第一筆 record_id: {first.record_id}");
+
+        var lines = records.Select(r =>
+            $@" record_id: {r.record_id}, 
+                apply_date: {r.apply_date}, 
+                depart_name: {r.Department?.depart_name}, 
+                staff_name: {r.Staff?.staff_name}, 
+                problem_type: {r.ProblemTypeCode?.description }, 
+                processing_type: {r.ProcessingTypeCode?.description }, 
+                processing_staff_name: {r.ProcessingStaff?.staff_name}, 
+                completion_date: {r.completion_date}"
+        );
+
+        return Content(string.Join("\n", lines));
     }
 
     public async Task<IActionResult> Index()

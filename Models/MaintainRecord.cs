@@ -16,23 +16,30 @@ public class MaintainRecord
     [Required, StringLength(10)]
     public string? depart_code { get; set; }// depart_code	varchar(10)
 
+    public Department? Department { get; set; } // 關聯: 一個維護紀錄屬於一個部門
+
     [Required]
     public int? staff_id { get; set; }// staff_id	int
+    public Staff? Staff { get; set; } // 關聯: 一個維護紀錄屬於一個員工
 
     [Required, StringLength(20)]
     public string? tel { get; set; }// tel	varchar(20)
 
     [Required, StringLength(2)]
     public string? problem_type { get; set; }// problem_type	varchar(2)
+    public Code? ProblemTypeCode { get; set; } // 關聯: 一個維護紀錄屬於一個問題類型
 
     [Required]
     public int? record_staff_id { get; set; }// record_staff_id	int
 
     [Required]
     public int? processing_staff_id { get; set; }// processing_staff_id	int
+    public Staff? ProcessingStaff { get; set; }
 
     [Required, StringLength(1)]
     public string? processing_type { get; set; }// processing_type	char(1)
+
+     public Code? ProcessingTypeCode { get; set; } // 關聯: 一個維護紀錄屬於一個問題類型
 
     [Required]
     public string? description { get; set; }// description	ntext
