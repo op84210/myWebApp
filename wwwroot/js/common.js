@@ -85,6 +85,7 @@ async function getStaffsByDepartment(strDepartCode, strStaffSelectId) {
 
 }
 
+// 檢查民國日期格式是否有效
 function isValidRocDate(rocStr) {
     if (!/^[0-9]{7}$/.test(rocStr)) return false;
     const y = parseInt(rocStr.substring(0,3), 10) + 1911;
