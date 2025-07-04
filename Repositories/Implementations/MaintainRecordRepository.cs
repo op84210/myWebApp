@@ -1,13 +1,29 @@
 using myWebApp.Models;
 using Microsoft.EntityFrameworkCore;
 
+/// <summary>
+/// 維護紀錄資料存取層，提供CRUD與分頁查詢等功能（EF Core）。
+/// </summary>
 public class MaintainRecordRepository : IMaintainRecordRepository
 {
     private readonly MyDbContext m_db;
+
+    /// <summary>
+    /// 建構式，注入DbContext
+    /// </summary>
+    /// <param name="db">資料庫DbContext</param>
     public MaintainRecordRepository(MyDbContext db)
     {
         m_db = db;
     }
+
+    /// <summary>
+    /// 分頁查詢維護紀錄（多條件、關聯、投影）
+    /// </summary>
+    /// <param name="model">查詢條件</param>
+    /// <param name="page">頁碼</param>
+    /// <param name="pageSize">每頁筆數</param>
+    /// <returns>查詢結果與總筆數</returns>
     public async Task<(List<SearchResult>, int)> SearchPagedAsync(SearchCondition model, int page, int pageSize)
     {
         var query = m_db.MaintainRecords
@@ -56,6 +72,11 @@ public class MaintainRecordRepository : IMaintainRecordRepository
         return (data, totalCount);
     }
 
+    /// <summary>
+    /// 依ID查詢單筆維護紀錄
+    /// </summary>
+    /// <param name="id">維護紀錄ID</param>
+    /// <returns>維護紀錄物件或null</returns>
     public async Task<MaintainRecord?> GetByIdAsync(int id)
     {
         return await m_db.MaintainRecords
@@ -63,6 +84,11 @@ public class MaintainRecordRepository : IMaintainRecordRepository
             .FirstOrDefaultAsync(x => x.record_id == id);
     }
 
+    /// <summary>
+    /// 新增維護紀錄
+    /// </summary>
+    /// <param name="model">維護紀錄物件</param>
+    /// <returns>新增後的ID</returns>
     public async Task<int> CreateAsync(MaintainRecord model)
     {
         await m_db.MaintainRecords.AddAsync(model);
@@ -70,6 +96,11 @@ public class MaintainRecordRepository : IMaintainRecordRepository
         return model.record_id ?? 0;
     }
 
+    /// <summary>
+    /// 更新維護紀錄
+    /// </summary>
+    /// <param name="model">維護紀錄物件</param>
+    /// <returns>受影響筆數</returns>
     public async Task<int> UpdateAsync(MaintainRecord model)
     {
         model.called_firm ??= "";
@@ -77,7 +108,12 @@ public class MaintainRecordRepository : IMaintainRecordRepository
         m_db.MaintainRecords.Update(model);
         return await m_db.SaveChangesAsync();
     }
-    
+
+    /// <summary>
+    /// 刪除維護紀錄
+    /// </summary>
+    /// <param name="record_id">維護紀錄ID</param>
+    /// <returns>受影響筆數</returns>
     public async Task<int> DeleteAsync(int record_id)
     {
         var entity = await m_db.MaintainRecords.FindAsync(record_id);

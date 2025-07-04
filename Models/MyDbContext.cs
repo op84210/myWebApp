@@ -1,13 +1,38 @@
 using Microsoft.EntityFrameworkCore;
 using myWebApp.Models;
 
+/// <summary>
+/// EF Core 資料庫操作 DbContext，對應各資料表與關聯設定。
+/// </summary>
 public class MyDbContext : DbContext
 {
+    /// <summary>
+    /// 建構式，注入 DbContextOptions
+    /// </summary>
+    /// <param name="options">DbContext 選項</param>
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
+
+    /// <summary>
+    /// 維護紀錄資料表
+    /// </summary>
     public DbSet<MaintainRecord> MaintainRecords { get; set; }
+    /// <summary>
+    /// 單位資料表
+    /// </summary>
     public DbSet<Department> Departments { get; set; }
+    /// <summary>
+    /// 人員資料表
+    /// </summary>
     public DbSet<Staff> Staffs { get; set; }
+    /// <summary>
+    /// 代碼資料表
+    /// </summary>
     public DbSet<Code> Codes { get; set; }
+
+    /// <summary>
+    /// 設定資料表主鍵、關聯、表名等 Fluent API 設定
+    /// </summary>
+    /// <param name="modelBuilder">模型建構器</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 設定主鍵、資料表名稱
@@ -59,8 +84,6 @@ public class MyDbContext : DbContext
             .WithMany()
             .HasForeignKey(m => m.processing_type)
             .HasPrincipalKey(c => c.code);
-
-
 
     }
 }
