@@ -1,154 +1,92 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 public class DropdownDataRepository : IDropdownDataRepository
 {
-    private readonly string m_strConnectionString;
-    public DropdownDataRepository(IConfiguration config)
+    private readonly MyDbContext m_db;
+    public DropdownDataRepository(MyDbContext db)
     {
-        m_strConnectionString = config.GetConnectionString("DefaultConnection") 
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        m_db = db;
     }
     public async Task<List<SelectListItem>> GetStaffsByDepartmentAsync(string strDepartCode)
     {
-        var list = new List<SelectListItem>();
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
-            cmd.CommandText = @"SELECT staff_id, staff_name FROM ism_staff WHERE depart_code = @depart_code ORDER BY staff_name";
-            cmd.Parameters.AddWithValue("@depart_code", strDepartCode);
-            using (var dr = await cmd.ExecuteReaderAsync())
+        // EF Core 改寫
+        var list = await m_db.Staffs
+            .Where(s => s.depart_code == strDepartCode)
+            .OrderBy(s => s.staff_name)
+            .Select(s => new SelectListItem
             {
-                while (await dr.ReadAsync())
-                {
-                    list.Add(new SelectListItem
-                    {
-                        Value = dr["staff_id"].ToString(),
-                        Text = dr["staff_name"].ToString()
-                    });
-                }
-            }
-        }
+                Value = s.staff_id.ToString(),
+                Text = s.staff_name
+            })
+            .ToListAsync();
         return list;
     }
     public async Task<List<SelectListItem>> GetDepartmentsAsync()
     {
-        var list = new List<SelectListItem>();
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
-            cmd.CommandText = "SELECT depart_code, depart_name FROM ism_department ORDER BY depart_name";
-            using (var dr = await cmd.ExecuteReaderAsync())
+        var list = await m_db.Departments
+            .OrderBy(d => d.depart_name)
+            .Select(d => new SelectListItem
             {
-                while (await dr.ReadAsync())
-                {
-                    list.Add(new SelectListItem
-                    {
-                        Value = dr["depart_code"].ToString(),
-                        Text = dr["depart_name"].ToString()
-                    });
-                }
-            }
-        }
+                Value = d.depart_code,
+                Text = d.depart_name
+            })
+            .ToListAsync();
         return list;
     }
 
     public async Task<List<SelectListItem>> GetProblemTypesAsync()
     {
-        var list = new List<SelectListItem>();
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
-            cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'QUESTION' ORDER BY description";
-            using (var dr = await cmd.ExecuteReaderAsync())
+        var list = await m_db.Codes
+            .Where(c => c.kind == "QUESTION")
+            .OrderBy(c => c.description)
+            .Select(c => new SelectListItem
             {
-                while (await dr.ReadAsync())
-                {
-                    list.Add(new SelectListItem
-                    {
-                        Value = dr["code"].ToString(),
-                        Text = dr["description"].ToString()
-                    });
-                }
-            }
-        }
+                Value = c.code,
+                Text = c.description
+            })
+            .ToListAsync();
         return list;
     }
 
     public async Task<List<SelectListItem>> GetProcessingStaffIdsAsync()
     {
-        var list = new List<SelectListItem>();
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
-            cmd.CommandText = @"SELECT staff_id, staff_name FROM ism_staff
-                                WHERE EXISTS (
-                                    SELECT 1 FROM ism_maintain_record
-                                    WHERE processing_staff_id = ism_staff.staff_id
-                                )
-                                ORDER BY staff_name";
-            using (var dr = await cmd.ExecuteReaderAsync())
+        var list = await m_db.Staffs
+            .Where(s => m_db.MaintainRecords.Any(r => r.processing_staff_id == s.staff_id))
+            .OrderBy(s => s.staff_name)
+            .Select(s => new SelectListItem
             {
-                while (await dr.ReadAsync())
-                {
-                    list.Add(new SelectListItem
-                    {
-                        Value = dr["staff_id"].ToString(),
-                        Text = dr["staff_name"].ToString()
-                    });
-                }
-            }
-        }
+                Value = s.staff_id.ToString(),
+                Text = s.staff_name
+            })
+            .ToListAsync();
         return list;
     }
 
     public async Task<List<SelectListItem>> GetProcessingTypesAsync()
     {
-        var list = new List<SelectListItem>();
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
-            cmd.CommandText = "SELECT code, description FROM ism_code WHERE kind = 'PROCESSING' ORDER BY code";
-            using (var dr = await cmd.ExecuteReaderAsync())
+        var list = await m_db.Codes
+            .Where(c => c.kind == "PROCESSING")
+            .OrderBy(c => c.code)
+            .Select(c => new SelectListItem
             {
-                while (await dr.ReadAsync())
-                {
-                    list.Add(new SelectListItem
-                    {
-                        Value = dr["code"].ToString(),
-                        Text = dr["description"].ToString()
-                    });
-                }
-            }
-        }
+                Value = c.code,
+                Text = c.description
+            })
+            .ToListAsync();
         return list;
     }
 
     public async Task<List<SelectListItem>> GetStaffsAsync()
     {
-        var list = new List<SelectListItem>();
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
-            cmd.CommandText = "SELECT staff_id, staff_name FROM ism_staff ORDER BY staff_name";
-            using (var dr = await cmd.ExecuteReaderAsync())
+        var list = await m_db.Staffs
+            .OrderBy(s => s.staff_name)
+            .Select(s => new SelectListItem
             {
-                while (await dr.ReadAsync())
-                {
-                    list.Add(new SelectListItem
-                    {
-                        Value = dr["staff_id"].ToString(),
-                        Text = dr["staff_name"].ToString()
-                    });
-                }
-            }
-        }
+                Value = s.staff_id.ToString(),
+                Text = s.staff_name
+            })
+            .ToListAsync();
         return list;
     }
 }

@@ -6,6 +6,8 @@ public class MyDbContext : DbContext
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
     public DbSet<MaintainRecord> MaintainRecords { get; set; }
     public DbSet<Department> Departments { get; set; }
+    public DbSet<Staff> Staffs { get; set; }
+    public DbSet<Code> Codes { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 設定主鍵、資料表名稱
@@ -58,7 +60,7 @@ public class MyDbContext : DbContext
             .HasForeignKey(m => m.processing_type)
             .HasPrincipalKey(c => c.code);
 
-     
+
 
     }
 }
