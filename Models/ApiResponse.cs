@@ -6,7 +6,6 @@ public class ApiResponse
     public string? message { get; set; }
     public IEnumerable<string>? errors { get; set; }
     public object? data { get; set; }
-
     public static ApiResponse Ok(object? data = null, string? message = null)
         => new ApiResponse { success = true, data = data, message = message };
 

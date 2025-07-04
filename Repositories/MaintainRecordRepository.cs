@@ -9,10 +9,10 @@ public class MaintainRecordRepository : IMaintainRecordRepository
         m_strConnectionString = config.GetConnectionString("DefaultConnection") 
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
     }
-    public async Task<List<SearchResultViewModel>> SearchAsync(SearchConditionViewModel model)
+    public async Task<(List<SearchResultViewModel>, int)> SearchPagedAsync(SearchConditionViewModel model, int page, int pageSize)
     {
         var results = new List<SearchResultViewModel>();
-      
+
         using (var cn = new SqlConnection(m_strConnectionString))
         {
             await cn.OpenAsync();
@@ -72,7 +72,7 @@ public class MaintainRecordRepository : IMaintainRecordRepository
                 }
             }
         }
-        return results;
+        return (results, results.Count);
     }
 
     public async Task<MaintainRecordViewModel?> GetByIdAsync(int id)
@@ -105,7 +105,7 @@ public class MaintainRecordRepository : IMaintainRecordRepository
                         solution = dr["solution"] == DBNull.Value ? null : dr["solution"].ToString(),
                         called_firm = dr["called_firm"] == DBNull.Value ? null : dr["called_firm"].ToString(),
                         completion_date = dr["completion_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["completion_date"]),
-                        processing_minutes = dr["processing_minutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["processing_minutes"]),
+                        processing_minutes = dr["processing_minutes"] == DBNull.Value ? null : Convert.ToInt16(dr["processing_minutes"]),
                         update_user_id = dr["update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["update_user_id"]),
                         update_date = dr["update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["update_date"]),
                         satisfaction = dr["satisfaction"] == DBNull.Value ? null : dr["satisfaction"].ToString(),

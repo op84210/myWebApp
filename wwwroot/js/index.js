@@ -87,7 +87,7 @@ async function searchAndRender(formData) {
         if (!response.success) throw new Error(response.message);
 
         let html = '';
-        let data = response.data || [];
+        let data = response.data.results || [];
 
         if (data.length === 0) {
             html = '<div>查無資料</div>';

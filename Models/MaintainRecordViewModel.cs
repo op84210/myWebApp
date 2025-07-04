@@ -45,7 +45,7 @@ public class MaintainRecordViewModel
     
     public DateTime? completion_date { get; set; }// completion_date	datetime
   
-    public int? processing_minutes { get; set; }// processing_minutes	smallint
+    public short? processing_minutes { get; set; }// processing_minutes	smallint
 
     [Required]
     public int? update_user_id { get; set; }// update_user_id	int

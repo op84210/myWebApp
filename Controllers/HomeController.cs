@@ -12,12 +12,24 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> m_logger;
     private readonly IMaintainRecordRepository m_repoMaintainRecord;
     private readonly IDropdownDataRepository m_repoDropdownData;
+    private readonly MyDbContext _db;
 
-    public HomeController(ILogger<HomeController> logger, IMaintainRecordRepository repoMaintainRecord, IDropdownDataRepository repoDropdownData)
+    public HomeController(MyDbContext db, ILogger<HomeController> logger, IMaintainRecordRepository repoMaintainRecord, IDropdownDataRepository repoDropdownData)
     {
+        _db = db;
         m_logger = logger;
         m_repoMaintainRecord = repoMaintainRecord;
         m_repoDropdownData = repoDropdownData;
+    }
+
+    [HttpGet("/Home/DbTest")]
+    public IActionResult DbTest()
+    {
+        // 取出 ism_maintain_record 第一筆
+        var first = _db.MaintainRecords.FirstOrDefault();
+        if (first == null)
+            return Content("查無資料，DbContext 連線成功但資料表無資料");
+        return Content($"第一筆 record_id: {first.record_id}");
     }
 
     public async Task<IActionResult> Index()
@@ -61,12 +73,12 @@ public class HomeController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Search([FromForm] SearchConditionViewModel model)
+    public async Task<IActionResult> Search([FromForm] SearchConditionViewModel model, int page = 1, int pageSize = 10)
     {
         try
         {
-            var results = await m_repoMaintainRecord.SearchAsync(model);
-            return Json(ApiResponse.Ok(results));
+            var (results, totalCount) = await m_repoMaintainRecord.SearchPagedAsync(model, page, pageSize);
+            return Json(ApiResponse.Ok(new { results = results, totalCount }));
         }
         catch (Exception ex)
         {

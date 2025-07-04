@@ -11,3 +11,8 @@ obj/
 
 # 忽略 log 檔
 *.log
+
+# 忽略 appsettings
+appsettings.json
+appsettings.*.json
+.env
