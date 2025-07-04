@@ -86,12 +86,6 @@ public class HomeController : Controller
         return Json(staffList);
     }
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-    }
-
     [HttpPost]
     public async Task<IActionResult> Search([FromForm] SearchConditionViewModel model, int page = 1, int pageSize = 10)
     {
