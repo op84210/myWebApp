@@ -26,28 +26,31 @@ public class MaintainRecordRepository : IMaintainRecordRepository
     /// <returns>查詢結果與總筆數</returns>
     public async Task<(List<SearchResult>, int)> SearchPagedAsync(SearchCondition model, int page, int pageSize)
     {
+        // 建立查詢：僅取出問題類別為QUESTION、處理類別為PROCESSING的資料（含關聯）
         var query = m_db.MaintainRecords
             .AsNoTracking()
             .Where(x => (x.ProblemTypeCode == null || x.ProblemTypeCode.kind == "QUESTION") &&
                         (x.ProcessingTypeCode == null || x.ProcessingTypeCode.kind == "PROCESSING"));
 
+        // 動態組合查詢條件（依使用者輸入）
         if (model.ApplyStartDate != null)
-            query = query.Where(x => x.apply_date >= model.ApplyStartDate);
+            query = query.Where(x => x.apply_date >= model.ApplyStartDate); // 申報起始日
         if (model.ApplyEndDate != null)
-            query = query.Where(x => x.apply_date <= model.ApplyEndDate);
+            query = query.Where(x => x.apply_date <= model.ApplyEndDate);   // 申報結束日
         if (!string.IsNullOrEmpty(model.depart_code))
-            query = query.Where(x => x.depart_code == model.depart_code);
+            query = query.Where(x => x.depart_code == model.depart_code);   // 單位
         if (!string.IsNullOrEmpty(model.problem_type))
-            query = query.Where(x => x.problem_type == model.problem_type);
+            query = query.Where(x => x.problem_type == model.problem_type); // 問題類別
         if (model.processing_staff_id != null)
-            query = query.Where(x => x.processing_staff_id == model.processing_staff_id);
+            query = query.Where(x => x.processing_staff_id == model.processing_staff_id); // 處理人員
         if (!string.IsNullOrEmpty(model.processing_type))
-            query = query.Where(x => x.processing_type == model.processing_type);
+            query = query.Where(x => x.processing_type == model.processing_type); // 處理類別
         if (model.CompletionStartDate != null)
-            query = query.Where(x => x.completion_date >= model.CompletionStartDate);
+            query = query.Where(x => x.completion_date >= model.CompletionStartDate); // 完成起始日
         if (model.CompletionEndDate != null)
-            query = query.Where(x => x.completion_date <= model.CompletionEndDate);
-
+            query = query.Where(x => x.completion_date <= model.CompletionEndDate);   // 完成結束日
+        
+        // 投影：只取出前端需要的欄位，並處理關聯欄位
         var projected = query
             .Select(x => new SearchResult
             {
@@ -61,14 +64,17 @@ public class MaintainRecordRepository : IMaintainRecordRepository
                 completion_date = x.completion_date ?? DateTime.MinValue
             });
 
+        // 取得總筆數（分頁用）
         int totalCount = await projected.CountAsync();
 
+        // 依分頁參數取出資料，並依 record_id 由新到舊排序
         var data = await projected
             .OrderByDescending(x => x.record_id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
+        // 回傳分頁資料與總筆數
         return (data, totalCount);
     }
 
