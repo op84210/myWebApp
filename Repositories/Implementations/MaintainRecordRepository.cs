@@ -1,20 +1,16 @@
 using myWebApp.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Data.SqlClient;
 
 public class MaintainRecordRepository : IMaintainRecordRepository
 {
-    private readonly MyDbContext _db;
-    private readonly string m_strConnectionString;
-    public MaintainRecordRepository(IConfiguration config,MyDbContext db)
+    private readonly MyDbContext m_db;
+    public MaintainRecordRepository(MyDbContext db)
     {
-          m_strConnectionString = config.GetConnectionString("DefaultConnection") 
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        _db = db;
+        m_db = db;
     }
     public async Task<(List<SearchResult>, int)> SearchPagedAsync(SearchCondition model, int page, int pageSize)
     {
-        var query = _db.MaintainRecords
+        var query = m_db.MaintainRecords
             .AsNoTracking()
             .Where(x => (x.ProblemTypeCode == null || x.ProblemTypeCode.kind == "QUESTION") &&
                         (x.ProcessingTypeCode == null || x.ProcessingTypeCode.kind == "PROCESSING"));
@@ -62,158 +58,31 @@ public class MaintainRecordRepository : IMaintainRecordRepository
 
     public async Task<MaintainRecord?> GetByIdAsync(int id)
     {
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
-
-              cmd.CommandText = @"SELECT * FROM ism_maintain_record WHERE record_id = @id";
-                cmd.Parameters.AddWithValue("@id", id);
-
-            using (var dr = await cmd.ExecuteReaderAsync())
-            {
-                if (await dr.ReadAsync())
-                {
-                    return new MaintainRecord
-                    {
-                        record_id = dr["record_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["record_id"]),
-                        apply_date = dr["apply_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["apply_date"]),
-                        serial_no = dr["serial_no"] == DBNull.Value ? null : dr["serial_no"].ToString(),
-                        depart_code = dr["depart_code"] == DBNull.Value ? null : dr["depart_code"].ToString(),
-                        staff_id = dr["staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["staff_id"]),
-                        tel = dr["tel"] == DBNull.Value ? null : dr["tel"].ToString(),
-                        problem_type = dr["problem_type"] == DBNull.Value ? null : dr["problem_type"].ToString(),
-                        record_staff_id = dr["record_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["record_staff_id"]),
-                        processing_staff_id = dr["processing_staff_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["processing_staff_id"]),
-                        processing_type = dr["processing_type"] == DBNull.Value ? null : dr["processing_type"].ToString(),
-                        description = dr["description"] == DBNull.Value ? null : dr["description"].ToString(),
-                        solution = dr["solution"] == DBNull.Value ? null : dr["solution"].ToString(),
-                        called_firm = dr["called_firm"] == DBNull.Value ? null : dr["called_firm"].ToString(),
-                        completion_date = dr["completion_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["completion_date"]),
-                        processing_minutes = dr["processing_minutes"] == DBNull.Value ? null : Convert.ToInt16(dr["processing_minutes"]),
-                        update_user_id = dr["update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["update_user_id"]),
-                        update_date = dr["update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["update_date"]),
-                        satisfaction = dr["satisfaction"] == DBNull.Value ? null : dr["satisfaction"].ToString(),
-                        recommendation = dr["recommendation"] == DBNull.Value ? null : dr["recommendation"].ToString(),
-                        satisfaction_update_user_id = dr["satisfaction_update_user_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["satisfaction_update_user_id"]),
-                        satisfaction_update_date = dr["satisfaction_update_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["satisfaction_update_date"])
-                    };
-                }
-            }
-        }
-
-        return null;
+        return await m_db.MaintainRecords
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.record_id == id);
     }
 
     public async Task<int> CreateAsync(MaintainRecord model)
     {
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
-            cmd.CommandText = @"
-                INSERT INTO ism_maintain_record
-                (apply_date, serial_no, depart_code, staff_id, tel, problem_type, record_staff_id, processing_staff_id, processing_type, description, solution, called_firm, completion_date, processing_minutes, update_user_id, update_date, satisfaction, recommendation, satisfaction_update_user_id, satisfaction_update_date)
-                VALUES
-                (@apply_date, @serial_no, @depart_code, @staff_id, @tel, @problem_type, @record_staff_id, @processing_staff_id, @processing_type, @description, @solution, @called_firm, @completion_date, @processing_minutes, @update_user_id, @update_date, @satisfaction, @recommendation, @satisfaction_update_user_id, @satisfaction_update_date)
-            ";
-
-            cmd.Parameters.AddWithValue("@apply_date", (object?)model.apply_date ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@serial_no", (object?)model.serial_no ?? "");
-            cmd.Parameters.AddWithValue("@depart_code", (object?)model.depart_code ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@staff_id", (object?)model.staff_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@tel", (object?)model.tel ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@problem_type", (object?)model.problem_type ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@record_staff_id", (object?)model.record_staff_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@processing_staff_id", (object?)model.processing_staff_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@processing_type", (object?)model.processing_type ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@description", (object?)model.description ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@solution", (object?)model.solution ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@called_firm", (object?)model.called_firm ?? "");
-            cmd.Parameters.AddWithValue("@completion_date", (object?)model.completion_date ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@processing_minutes", (object?)model.processing_minutes ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@update_user_id", (object?)model.update_user_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@update_date", (object?)model.update_date ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@satisfaction", (object?)model.satisfaction ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@recommendation", (object?)model.recommendation ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@satisfaction_update_user_id", (object?)model.satisfaction_update_user_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@satisfaction_update_date", (object?)model.satisfaction_update_date ?? DBNull.Value);
-
-            var result = await cmd.ExecuteScalarAsync();
-            return result != null ? Convert.ToInt32(result) : 0;
-        }
+        await m_db.MaintainRecords.AddAsync(model);
+        await m_db.SaveChangesAsync();
+        return model.record_id ?? 0;
     }
 
     public async Task<int> UpdateAsync(MaintainRecord model)
     {
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-            var cmd = cn.CreateCommand();
-             cmd.CommandText = @"
-                UPDATE ism_maintain_record SET
-                    apply_date = @apply_date,
-                    serial_no = @serial_no,
-                    depart_code = @depart_code,
-                    staff_id = @staff_id,
-                    tel = @tel,
-                    problem_type = @problem_type,
-                    record_staff_id = @record_staff_id,
-                    processing_staff_id = @processing_staff_id,
-                    processing_type = @processing_type,
-                    description = @description,
-                    solution = @solution,
-                    called_firm = @called_firm,
-                    completion_date = @completion_date,
-                    processing_minutes = @processing_minutes,
-                    update_user_id = @update_user_id,
-                    update_date = @update_date,
-                    satisfaction = @satisfaction,
-                    recommendation = @recommendation,
-                    satisfaction_update_user_id = @satisfaction_update_user_id,
-                    satisfaction_update_date = @satisfaction_update_date
-                WHERE record_id = @record_id
-            ";
-
-            cmd.Parameters.AddWithValue("@apply_date", (object?)model.apply_date ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@serial_no", (object?)model.serial_no ?? "");
-            cmd.Parameters.AddWithValue("@depart_code", (object?)model.depart_code ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@staff_id", (object?)model.staff_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@tel", (object?)model.tel ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@problem_type", (object?)model.problem_type ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@record_staff_id", (object?)model.record_staff_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@processing_staff_id", (object?)model.processing_staff_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@processing_type", (object?)model.processing_type ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@description", (object?)model.description ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@solution", (object?)model.solution ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@called_firm", (object?)model.called_firm ?? "");
-            cmd.Parameters.AddWithValue("@completion_date", (object?)model.completion_date ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@processing_minutes", (object?)model.processing_minutes ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@update_user_id", (object?)model.update_user_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@update_date", (object?)model.update_date ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@satisfaction", (object?)model.satisfaction ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@recommendation", (object?)model.recommendation ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@satisfaction_update_user_id", (object?)model.satisfaction_update_user_id ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@satisfaction_update_date", (object?)model.satisfaction_update_date ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@record_id", (object?)model.record_id ?? DBNull.Value);
-
-            var rows = await cmd.ExecuteNonQueryAsync();
-            return rows;
-        }
+        model.called_firm ??= "";
+        model.serial_no ??= "";
+        m_db.MaintainRecords.Update(model);
+        return await m_db.SaveChangesAsync();
     }
     
     public async Task<int> DeleteAsync(int record_id)
     {
-        using (var cn = new SqlConnection(m_strConnectionString))
-        {
-            await cn.OpenAsync();
-
-            var cmd = cn.CreateCommand();
-            cmd.CommandText = "DELETE FROM ism_maintain_record WHERE record_id = @record_id";
-            cmd.Parameters.AddWithValue("@record_id", record_id);
-
-            var rows = await cmd.ExecuteNonQueryAsync();
-            return rows;
-        }
+        var entity = await m_db.MaintainRecords.FindAsync(record_id);
+        if (entity == null) return 0;
+        m_db.MaintainRecords.Remove(entity);
+        return await m_db.SaveChangesAsync();
     }
 }
