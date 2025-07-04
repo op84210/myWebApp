@@ -28,11 +28,12 @@ function rocToAD(strROC) {
     return `${intYear}-${intMonth}-${strDay}`;
 }
 
-function mergeDateAndTime(strDate, strTime) {
+// 合併民國日期和時間為ISO格式
+function mergeDateAndTime(strRoc, strTime) {
 
-    if (strDate && strTime) {
+    if (strRoc && strTime) {
         // 轉西元年月日
-        const adDate = rocToAD(strDate);
+        const adDate = rocToAD(strRoc);
 
         const strHour = strTime.substring(0, 2);
         const strMinute = strTime.substring(2, 4);
@@ -44,6 +45,7 @@ function mergeDateAndTime(strDate, strTime) {
     return null;
 }
 
+// 顯示錯誤訊息
 function showErrors(objMessage) {
     if (!objMessage) {
         alert('發生未知錯誤');
@@ -65,8 +67,7 @@ function showErrors(objMessage) {
     }
 }
 
-
-//依據選取的單位列出人員
+// 根據部門代碼載入人員下拉選單
 async function getStaffsByDepartment(strDepartCode, strStaffSelectId) {
 
     const staffSelect = document.getElementById(strStaffSelectId);
